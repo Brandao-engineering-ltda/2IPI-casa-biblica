@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { DashboardSkeleton } from "@/components/Skeleton";
+import { getUserData, getPurchasedCourses } from "@/lib/storage";
 
 type Status = "em-andamento" | "proximo" | "em-breve";
 type CourseProgress = "not-started" | "in-progress" | "completed";
@@ -24,11 +25,12 @@ interface UserCourse extends Course {
   progress: CourseProgress;
   progressPercentage: number;
   enrolledAt: string;
+  isPaid?: boolean;
 }
 
 // Sample data - replace with actual API calls
-const upcomingCourses: Course[] = [
-  {
+const allCourses: Record<string, Course> = {
+  "fundamentos-da-fe": {
     id: "fundamentos-da-fe",
     titulo: "Fundamentos da Fé",
     descricao:
@@ -40,7 +42,31 @@ const upcomingCourses: Course[] = [
     status: "proximo",
     imagem: "/images/cursos/fundamentos-da-fe.jpg",
   },
-  {
+  "teologia-sistematica": {
+    id: "teologia-sistematica",
+    titulo: "Teologia Sistemática",
+    descricao:
+      "Estudo aprofundado das principais doutrinas cristãs de forma organizada e sistemática.",
+    duracao: "12 semanas",
+    nivel: "Intermediário",
+    dataInicio: "14 Abr 2026",
+    dataFim: "6 Jul 2026",
+    status: "proximo",
+    imagem: "/images/cursos/panorama-biblico.jpg",
+  },
+  "hermeneutica-biblica": {
+    id: "hermeneutica-biblica",
+    titulo: "Hermenêutica Bíblica",
+    descricao:
+      "Princípios e métodos para interpretação correta das Escrituras Sagradas.",
+    duracao: "10 semanas",
+    nivel: "Intermediário",
+    dataInicio: "20 Jun 2026",
+    dataFim: "29 Ago 2026",
+    status: "em-breve",
+    imagem: "/images/cursos/hermeneutica.jpg",
+  },
+  "hermeneutica": {
     id: "hermeneutica",
     titulo: "Hermenêutica Bíblica",
     descricao:
@@ -52,7 +78,7 @@ const upcomingCourses: Course[] = [
     status: "em-breve",
     imagem: "/images/cursos/hermeneutica.jpg",
   },
-  {
+  "antigo-testamento": {
     id: "antigo-testamento",
     titulo: "Antigo Testamento",
     descricao:
@@ -64,65 +90,47 @@ const upcomingCourses: Course[] = [
     status: "em-breve",
     imagem: "/images/cursos/antigo-testamento.jpg",
   },
-];
+};
+
+const upcomingCourses: Course[] = Object.values(allCourses);
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [userCourses, setUserCourses] = useState<UserCourse[]>([]);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
-  const [enrollingId, setEnrollingId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
 
   useEffect(() => {
     // Simulate dashboard data loading
     const timer = setTimeout(() => {
-      // Sample user courses - replace with actual API call
-      const sampleUserCourses: UserCourse[] = [
-        // Uncomment to test with courses:
-        // {
-        //   id: "panorama-biblico",
-        //   titulo: "Panorama Bíblico",
-        //   descricao: "Uma visão geral de toda a Bíblia, do Gênesis ao Apocalipse.",
-        //   duracao: "12 semanas",
-        //   nivel: "Iniciante",
-        //   dataInicio: "10 Fev 2026",
-        //   dataFim: "4 Mai 2026",
-        //   status: "em-andamento",
-        //   imagem: "/images/cursos/panorama-biblico.jpg",
-        //   progress: "in-progress",
-        //   progressPercentage: 65,
-        //   enrolledAt: "10 Fev 2026",
-        // },
-      ];
+      // Get user data
+      const userData = getUserData();
+      if (userData) {
+        // Extract first name
+        const firstName = userData.nomeCompleto.split(" ")[0];
+        setUserName(firstName);
+      }
+
+      // Get purchased courses
+      const purchases = getPurchasedCourses();
+      const purchasedUserCourses: UserCourse[] = purchases.map((purchase) => {
+        const courseData = allCourses[purchase.courseId];
+        return {
+          ...courseData,
+          progress: "not-started" as CourseProgress,
+          progressPercentage: 0,
+          enrolledAt: new Date(purchase.purchaseDate).toLocaleDateString('pt-BR'),
+          isPaid: true,
+        };
+      });
       
-      setUserCourses(sampleUserCourses);
-      setEnrolledCourseIds(new Set(sampleUserCourses.map(c => c.id)));
+      setUserCourses(purchasedUserCourses);
+      setEnrolledCourseIds(new Set(purchases.map(p => p.courseId)));
       setIsLoading(false);
     }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
-
-  const handleEnroll = async (courseId: string) => {
-    setEnrollingId(courseId);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const course = upcomingCourses.find(c => c.id === courseId);
-    if (course) {
-      const newUserCourse: UserCourse = {
-        ...course,
-        progress: "not-started",
-        progressPercentage: 0,
-        enrolledAt: new Date().toLocaleDateString('pt-BR'),
-      };
-      
-      setUserCourses([...userCourses, newUserCourse]);
-      setEnrolledCourseIds(new Set([...enrolledCourseIds, courseId]));
-    }
-    
-    setEnrollingId(null);
-  };
 
   if (isLoading) {
     return <DashboardSkeleton />;
@@ -136,22 +144,29 @@ export default function DashboardPage() {
     <section className="relative min-h-[calc(100vh-80px)] bg-background">
       <div className="mx-auto max-w-7xl px-6 py-16">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-12">
-          <Image
-            src="/logo-3d.png"
-            alt="Logo Instituto Casa Bíblica"
-            width={56}
-            height={56}
-            className="rounded-xl"
-          />
-          <div>
-            <h1 className="text-3xl font-bold text-navy">
-              Meus Cursos
-            </h1>
-            <p className="text-sm text-navy-light">
-              Instituto Casa Bíblica
-            </p>
+        <div className="mb-12">
+          <div className="flex items-center gap-4 mb-4">
+            <Image
+              src="/logo-3d.png"
+              alt="Logo Instituto Casa Bíblica"
+              width={56}
+              height={56}
+              className="rounded-xl"
+            />
+            <div>
+              <h1 className="text-3xl font-bold text-navy">
+                {userName ? `Olá, ${userName}!` : "Meus Cursos"}
+              </h1>
+              <p className="text-sm text-navy-light">
+                Instituto Casa Bíblica
+              </p>
+            </div>
           </div>
+          {userName && (
+            <p className="text-base text-navy-light ml-[72px]">
+              Bem-vindo de volta! Continue sua jornada de formação bíblica.
+            </p>
+          )}
         </div>
 
         {/* User Courses Section */}
@@ -236,15 +251,12 @@ export default function DashboardPage() {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {upcomingCourses.map((course) => {
               const isEnrolled = enrolledCourseIds.has(course.id);
-              const isEnrolling = enrollingId === course.id;
 
               return (
                 <AvailableCourseCard
                   key={course.id}
                   course={course}
                   isEnrolled={isEnrolled}
-                  isEnrolling={isEnrolling}
-                  onEnroll={() => handleEnroll(course.id)}
                 />
               );
             })}
@@ -277,8 +289,11 @@ function UserCourseCard({ course }: { course: UserCourse }) {
     "completed": "bg-green-600",
   }[course.progress];
 
+  // If course is paid, link to content page, otherwise to preview page
+  const courseLink = course.isPaid ? `/curso/${course.id}/conteudo` : `/curso/${course.id}`;
+
   return (
-    <Link href={`/curso/${course.id}`} className="group block overflow-hidden rounded-2xl border border-navy-light/10 bg-white shadow-md transition-all hover:shadow-xl">
+    <Link href={courseLink} className="group block overflow-hidden rounded-2xl border border-navy-light/10 bg-white shadow-md transition-all hover:shadow-xl">
       <div className="relative h-48 overflow-hidden bg-navy">
         <Image
           src={course.imagem}
@@ -290,13 +305,20 @@ function UserCourseCard({ course }: { course: UserCourse }) {
       </div>
 
       <div className="p-6">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between gap-2">
           <span className="rounded-full bg-cream px-3 py-1 text-xs font-semibold text-navy">
             {course.nivel}
           </span>
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${progressColor}`}>
-            {progressLabel}
-          </span>
+          <div className="flex items-center gap-2">
+            {course.isPaid && (
+              <span className="rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white">
+                ✓ Pago
+              </span>
+            )}
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${progressColor}`}>
+              {progressLabel}
+            </span>
+          </div>
         </div>
 
         <h3 className="mb-2 text-xl font-bold text-navy">
@@ -344,7 +366,7 @@ function UserCourseCard({ course }: { course: UserCourse }) {
         </div>
 
         <div className="rounded-full bg-navy px-6 py-2.5 text-center text-sm font-semibold text-white transition-colors group-hover:bg-navy-dark">
-          Ver Detalhes
+          {course.isPaid ? "Acessar Conteúdo" : "Ver Detalhes"}
         </div>
       </div>
     </Link>
@@ -354,13 +376,9 @@ function UserCourseCard({ course }: { course: UserCourse }) {
 function AvailableCourseCard({
   course,
   isEnrolled,
-  isEnrolling,
-  onEnroll,
 }: {
   course: Course;
   isEnrolled: boolean;
-  isEnrolling: boolean;
-  onEnroll: () => void;
 }) {
   const statusInfo = {
     "em-andamento": { label: "Em Andamento", color: "bg-green-600" },
@@ -427,22 +445,21 @@ function AvailableCourseCard({
       </Link>
 
       <div className="px-6 pb-6">
-        <button
+        <Link
+          href={isEnrolled ? "#" : `/curso/${course.id}/inscricao`}
           onClick={(e) => {
-            e.preventDefault();
-            onEnroll();
+            if (isEnrolled) {
+              e.preventDefault();
+            }
           }}
-          disabled={isEnrolled || isEnrolling}
-          className={`w-full rounded-full px-6 py-2.5 text-sm font-semibold transition-colors ${
+          className={`block w-full rounded-full px-6 py-2.5 text-center text-sm font-semibold transition-colors ${
             isEnrolled
               ? "bg-green-600 text-white cursor-default"
-              : isEnrolling
-              ? "bg-navy-light text-white cursor-wait"
               : "bg-primary text-white hover:bg-primary-dark"
           }`}
         >
-          {isEnrolled ? "✓ Inscrito" : isEnrolling ? "Inscrevendo..." : "Inscrever-se"}
-        </button>
+          {isEnrolled ? "✓ Inscrito" : "Inscrever-se"}
+        </Link>
       </div>
     </div>
   );

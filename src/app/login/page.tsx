@@ -82,7 +82,23 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 flex flex-col items-center gap-4">
+            <div className="relative w-full">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-cream-dark/20"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-navy px-2 text-cream-dark">ou</span>
+              </div>
+            </div>
+
+            <Link
+              href="/registro"
+              className="w-full rounded-full border border-primary px-8 py-3.5 text-center text-base font-semibold text-primary transition-colors hover:bg-primary hover:text-white"
+            >
+              Criar Conta
+            </Link>
+
             <Link
               href="/"
               className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"

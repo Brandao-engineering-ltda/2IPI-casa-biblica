@@ -2,22 +2,35 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { clearUserData, getUserData } from "@/lib/storage";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
 
+  useEffect(() => {
+    // Check if user is logged in
+    const userData = getUserData();
+    setIsLoggedIn(userData !== null);
+  }, [pathname]);
+
+  // Show nav links only on home page
+  const showNavLinks = pathname === "/";
   // Show login button only on home page
   const showLoginButton = pathname === "/";
-  // Show logout button on dashboard page
+  // Show logout button on dashboard and other authenticated pages
   const showLogoutButton = pathname === "/dashboard";
+  
+  // Determine logo link based on login status
+  const logoHref = isLoggedIn ? "/dashboard" : "/";
 
   return (
     <header className="sticky top-0 z-50 bg-navy shadow-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href={logoHref} className="flex items-center gap-3">
           <Image
             src="/logo-3d.png"
             alt="Logo 2ª IPI de Maringá"
@@ -36,24 +49,28 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
-          <Link
-            href="/#cursos"
-            className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
-          >
-            Cursos
-          </Link>
-          <Link
-            href="/#sobre"
-            className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
-          >
-            Sobre
-          </Link>
-          <Link
-            href="/#contato"
-            className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
-          >
-            Contato
-          </Link>
+          {showNavLinks && (
+            <>
+              <Link
+                href="/#cursos"
+                className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+              >
+                Cursos
+              </Link>
+              <Link
+                href="/#sobre"
+                className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+              >
+                Sobre
+              </Link>
+              <Link
+                href="/#contato"
+                className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+              >
+                Contato
+              </Link>
+            </>
+          )}
           {showLoginButton && (
             <Link
               href="/login"
@@ -65,7 +82,8 @@ export function Header() {
           {showLogoutButton && (
             <button
               onClick={() => {
-                // For now, just redirect to home. In a real app, this would clear auth state
+                // Clear user data and redirect to home
+                clearUserData();
                 window.location.href = "/";
               }}
               className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
@@ -95,27 +113,31 @@ export function Header() {
       {menuOpen && (
         <nav className="border-t border-navy-light bg-navy px-6 py-4 md:hidden">
           <div className="flex flex-col gap-4">
-            <Link
-              href="/#cursos"
-              onClick={() => setMenuOpen(false)}
-              className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
-            >
-              Cursos
-            </Link>
-            <Link
-              href="/#sobre"
-              onClick={() => setMenuOpen(false)}
-              className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
-            >
-              Sobre
-            </Link>
-            <Link
-              href="/#contato"
-              onClick={() => setMenuOpen(false)}
-              className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
-            >
-              Contato
-            </Link>
+            {showNavLinks && (
+              <>
+                <Link
+                  href="/#cursos"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                >
+                  Cursos
+                </Link>
+                <Link
+                  href="/#sobre"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                >
+                  Sobre
+                </Link>
+                <Link
+                  href="/#contato"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                >
+                  Contato
+                </Link>
+              </>
+            )}
             {showLoginButton && (
               <Link
                 href="/login"
@@ -129,6 +151,7 @@ export function Header() {
               <button
                 onClick={() => {
                   setMenuOpen(false);
+                  clearUserData();
                   window.location.href = "/";
                 }}
                 className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
