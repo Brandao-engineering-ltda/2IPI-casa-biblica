@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import DashboardPage from '../../app/dashboard/page'
 
 // Mock DashboardSkeleton component
@@ -28,9 +28,9 @@ describe('DashboardPage', () => {
     jest.advanceTimersByTime(1000)
     
     // Wait for component to re-render
-    await screen.findByText('Painel do Aluno')
+    await screen.findByText('Meus Cursos')
     
-    expect(screen.getByText('Painel do Aluno')).toBeInTheDocument()
+    expect(screen.getByText('Meus Cursos')).toBeInTheDocument()
     expect(screen.getByText('Instituto Casa Bíblica')).toBeInTheDocument()
   })
 
@@ -42,28 +42,78 @@ describe('DashboardPage', () => {
     expect(logo).toBeInTheDocument()
   })
 
-  it('renders dashboard cards after loading', async () => {
-    render(<DashboardPage />)
-    jest.advanceTimersByTime(1000)
-    
-    expect(await screen.findByText('Meus Cursos')).toBeInTheDocument()
-    expect(screen.getByText('Progresso')).toBeInTheDocument()
-    expect(screen.getByText('Certificados')).toBeInTheDocument()
-  })
-
-  it('renders empty state message', async () => {
+  it('shows empty state when user has no courses', async () => {
     render(<DashboardPage />)
     jest.advanceTimersByTime(1000)
     
     expect(await screen.findByText(/Você ainda não está matriculado em nenhum curso/i)).toBeInTheDocument()
   })
 
-  it('renders explore courses link', async () => {
+  it('renders available courses section', async () => {
     render(<DashboardPage />)
     jest.advanceTimersByTime(1000)
     
-    const link = await screen.findByText('Explorar cursos →')
-    expect(link.closest('a')).toHaveAttribute('href', '/#cursos')
+    expect(await screen.findByText('Cursos Disponíveis')).toBeInTheDocument()
+    expect(screen.getByText(/Inscreva-se nos próximos cursos/i)).toBeInTheDocument()
+  })
+
+  it('displays upcoming courses with enrollment buttons', async () => {
+    render(<DashboardPage />)
+    jest.advanceTimersByTime(1000)
+    
+    await screen.findByText('Cursos Disponíveis')
+    
+    // Check for course titles
+    expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument()
+    expect(screen.getByText('Hermenêutica Bíblica')).toBeInTheDocument()
+    expect(screen.getByText('Antigo Testamento')).toBeInTheDocument()
+    
+    // Check for enrollment buttons
+    const enrollButtons = screen.getAllByText('Inscrever-se')
+    expect(enrollButtons.length).toBeGreaterThan(0)
+  })
+
+  it('handles course enrollment', async () => {
+    render(<DashboardPage />)
+    jest.advanceTimersByTime(1000)
+    
+    await screen.findByText('Cursos Disponíveis')
+    
+    const enrollButtons = screen.getAllByText('Inscrever-se')
+    const firstEnrollButton = enrollButtons[0]
+    
+    // Click enroll button
+    fireEvent.click(firstEnrollButton)
+    
+    // Should show loading state
+    await waitFor(() => {
+      expect(screen.getByText('Inscrevendo...')).toBeInTheDocument()
+    })
+    
+    // Fast-forward enrollment API call
+    jest.advanceTimersByTime(1000)
+    
+    // Should show enrolled state
+    await waitFor(() => {
+      expect(screen.getByText('✓ Inscrito')).toBeInTheDocument()
+    })
+  })
+
+  it('shows enrolled button as disabled', async () => {
+    render(<DashboardPage />)
+    jest.advanceTimersByTime(1000)
+    
+    await screen.findByText('Cursos Disponíveis')
+    
+    const enrollButtons = screen.getAllByText('Inscrever-se')
+    fireEvent.click(enrollButtons[0])
+    
+    jest.advanceTimersByTime(1000)
+    
+    await waitFor(() => {
+      const enrolledButton = screen.getByText('✓ Inscrito')
+      expect(enrolledButton).toBeDisabled()
+    })
   })
 
   it('renders back to home link', async () => {
@@ -78,9 +128,21 @@ describe('DashboardPage', () => {
     const { container } = render(<DashboardPage />)
     jest.advanceTimersByTime(1000)
     
-    await screen.findByText('Painel do Aluno')
+    await screen.findByText('Meus Cursos')
     
     const section = container.querySelector('section')
-    expect(section).toHaveClass('bg-navy-dark')
+    expect(section).toHaveClass('bg-background')
+  })
+
+  it('displays course details correctly', async () => {
+    render(<DashboardPage />)
+    jest.advanceTimersByTime(1000)
+    
+    await screen.findByText('Fundamentos da Fé')
+    
+    // Check for course metadata
+    expect(screen.getByText('8 semanas')).toBeInTheDocument()
+    expect(screen.getByText('11 Mai 2026')).toBeInTheDocument()
+    expect(screen.getAllByText('Iniciante')[0]).toBeInTheDocument()
   })
 })

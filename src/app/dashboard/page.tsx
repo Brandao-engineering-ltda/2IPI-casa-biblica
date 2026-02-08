@@ -5,85 +5,445 @@ import Image from "next/image";
 import Link from "next/link";
 import { DashboardSkeleton } from "@/components/Skeleton";
 
+type Status = "em-andamento" | "proximo" | "em-breve";
+type CourseProgress = "not-started" | "in-progress" | "completed";
+
+interface Course {
+  id: string;
+  titulo: string;
+  descricao: string;
+  duracao: string;
+  nivel: string;
+  dataInicio: string;
+  dataFim: string;
+  status: Status;
+  imagem: string;
+}
+
+interface UserCourse extends Course {
+  progress: CourseProgress;
+  progressPercentage: number;
+  enrolledAt: string;
+}
+
+// Sample data - replace with actual API calls
+const upcomingCourses: Course[] = [
+  {
+    id: "fundamentos-da-fe",
+    titulo: "Fundamentos da Fé",
+    descricao:
+      "Estudo das doutrinas essenciais da fé cristã reformada. Base sólida para o crescimento espiritual.",
+    duracao: "8 semanas",
+    nivel: "Iniciante",
+    dataInicio: "11 Mai 2026",
+    dataFim: "6 Jul 2026",
+    status: "proximo",
+    imagem: "/images/cursos/fundamentos-da-fe.jpg",
+  },
+  {
+    id: "hermeneutica",
+    titulo: "Hermenêutica Bíblica",
+    descricao:
+      "Aprenda princípios de interpretação bíblica para estudar as Escrituras com profundidade e fidelidade.",
+    duracao: "10 semanas",
+    nivel: "Intermediário",
+    dataInicio: "13 Jul 2026",
+    dataFim: "21 Set 2026",
+    status: "em-breve",
+    imagem: "/images/cursos/hermeneutica.jpg",
+  },
+  {
+    id: "antigo-testamento",
+    titulo: "Antigo Testamento",
+    descricao:
+      "Estudo aprofundado dos livros do Antigo Testamento, seu contexto histórico e sua relevância hoje.",
+    duracao: "16 semanas",
+    nivel: "Intermediário",
+    dataInicio: "28 Set 2026",
+    dataFim: "18 Jan 2027",
+    status: "em-breve",
+    imagem: "/images/cursos/antigo-testamento.jpg",
+  },
+];
+
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
+  const [userCourses, setUserCourses] = useState<UserCourse[]>([]);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
+  const [enrollingId, setEnrollingId] = useState<string | null>(null);
 
   useEffect(() => {
     // Simulate dashboard data loading
     const timer = setTimeout(() => {
+      // Sample user courses - replace with actual API call
+      const sampleUserCourses: UserCourse[] = [
+        // Uncomment to test with courses:
+        // {
+        //   id: "panorama-biblico",
+        //   titulo: "Panorama Bíblico",
+        //   descricao: "Uma visão geral de toda a Bíblia, do Gênesis ao Apocalipse.",
+        //   duracao: "12 semanas",
+        //   nivel: "Iniciante",
+        //   dataInicio: "10 Fev 2026",
+        //   dataFim: "4 Mai 2026",
+        //   status: "em-andamento",
+        //   imagem: "/images/cursos/panorama-biblico.jpg",
+        //   progress: "in-progress",
+        //   progressPercentage: 65,
+        //   enrolledAt: "10 Fev 2026",
+        // },
+      ];
+      
+      setUserCourses(sampleUserCourses);
+      setEnrolledCourseIds(new Set(sampleUserCourses.map(c => c.id)));
       setIsLoading(false);
-    }, 1000); // Show skeleton for 1 second
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
+
+  const handleEnroll = async (courseId: string) => {
+    setEnrollingId(courseId);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const course = upcomingCourses.find(c => c.id === courseId);
+    if (course) {
+      const newUserCourse: UserCourse = {
+        ...course,
+        progress: "not-started",
+        progressPercentage: 0,
+        enrolledAt: new Date().toLocaleDateString('pt-BR'),
+      };
+      
+      setUserCourses([...userCourses, newUserCourse]);
+      setEnrolledCourseIds(new Set([...enrolledCourseIds, courseId]));
+    }
+    
+    setEnrollingId(null);
+  };
 
   if (isLoading) {
     return <DashboardSkeleton />;
   }
 
-  return (
-    <section className="relative min-h-[calc(100vh-80px)] overflow-hidden bg-navy-dark">
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
-      </div>
+  const currentCourses = userCourses.filter(c => c.progress === "in-progress");
+  const completedCourses = userCourses.filter(c => c.progress === "completed");
+  const upcomingEnrolledCourses = userCourses.filter(c => c.progress === "not-started");
 
-      <div className="relative mx-auto max-w-7xl px-6 py-16">
-        <div className="flex items-center gap-4">
+  return (
+    <section className="relative min-h-[calc(100vh-80px)] bg-background">
+      <div className="mx-auto max-w-7xl px-6 py-16">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-12">
           <Image
             src="/logo-3d.png"
             alt="Logo Instituto Casa Bíblica"
-            width={48}
-            height={48}
+            width={56}
+            height={56}
             className="rounded-xl"
           />
           <div>
-            <h1 className="text-2xl font-bold text-white">
-              Painel do Aluno
+            <h1 className="text-3xl font-bold text-navy">
+              Meus Cursos
             </h1>
-            <p className="text-sm text-cream-dark">
+            <p className="text-sm text-navy-light">
               Instituto Casa Bíblica
             </p>
           </div>
         </div>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-2xl border border-cream-dark/10 bg-navy p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Meus Cursos</h3>
-            <p className="mt-2 text-sm text-cream-dark">
-              Você ainda não está matriculado em nenhum curso.
+        {/* User Courses Section */}
+        <div className="mb-16">
+          {userCourses.length === 0 ? (
+            // Empty State
+            <div className="rounded-2xl border-2 border-dashed border-navy-light/20 bg-white p-12 text-center">
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-cream">
+                <svg
+                  className="h-10 w-10 text-navy-light"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-navy mb-2">
+                Você ainda não está matriculado em nenhum curso
+              </h3>
+              <p className="text-navy-light mb-6">
+                Explore os cursos disponíveis abaixo e comece sua jornada de formação bíblica
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Current Courses */}
+              {currentCourses.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold text-navy mb-6">Cursos em Andamento</h2>
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {currentCourses.map((course) => (
+                      <UserCourseCard key={course.id} course={course} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upcoming Enrolled Courses */}
+              {upcomingEnrolledCourses.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold text-navy mb-6">Próximos Cursos</h2>
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {upcomingEnrolledCourses.map((course) => (
+                      <UserCourseCard key={course.id} course={course} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Completed Courses */}
+              {completedCourses.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-navy mb-6">Cursos Concluídos</h2>
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {completedCourses.map((course) => (
+                      <UserCourseCard key={course.id} course={course} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Available Courses Section */}
+        <div className="border-t border-navy-light/20 pt-16">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-navy mb-2">
+              Cursos Disponíveis
+            </h2>
+            <p className="text-lg text-navy-light">
+              Inscreva-se nos próximos cursos e continue sua formação bíblica
             </p>
-            <Link
-              href="/#cursos"
-              className="mt-4 inline-block text-sm font-medium text-primary-light transition-colors hover:text-primary"
-            >
-              Explorar cursos →
-            </Link>
           </div>
 
-          <div className="rounded-2xl border border-cream-dark/10 bg-navy p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Progresso</h3>
-            <p className="mt-2 text-sm text-cream-dark">
-              Acompanhe seu progresso nos cursos aqui.
-            </p>
-          </div>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {upcomingCourses.map((course) => {
+              const isEnrolled = enrolledCourseIds.has(course.id);
+              const isEnrolling = enrollingId === course.id;
 
-          <div className="rounded-2xl border border-cream-dark/10 bg-navy p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-white">Certificados</h3>
-            <p className="mt-2 text-sm text-cream-dark">
-              Seus certificados de conclusão aparecerão aqui.
-            </p>
+              return (
+                <AvailableCourseCard
+                  key={course.id}
+                  course={course}
+                  isEnrolled={isEnrolled}
+                  isEnrolling={isEnrolling}
+                  onEnroll={() => handleEnroll(course.id)}
+                />
+              );
+            })}
           </div>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-12 text-center">
           <Link
             href="/"
-            className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+            className="text-sm font-medium text-navy-light transition-colors hover:text-primary"
           >
             ← Voltar para a página inicial
           </Link>
         </div>
       </div>
     </section>
+  );
+}
+
+function UserCourseCard({ course }: { course: UserCourse }) {
+  const progressLabel = {
+    "not-started": "Não iniciado",
+    "in-progress": "Em progresso",
+    "completed": "Concluído",
+  }[course.progress];
+
+  const progressColor = {
+    "not-started": "bg-navy-light",
+    "in-progress": "bg-primary",
+    "completed": "bg-green-600",
+  }[course.progress];
+
+  return (
+    <Link href={`/curso/${course.id}`} className="group block overflow-hidden rounded-2xl border border-navy-light/10 bg-white shadow-md transition-all hover:shadow-xl">
+      <div className="relative h-48 overflow-hidden bg-navy">
+        <Image
+          src={course.imagem}
+          alt={course.titulo}
+          fill
+          className="object-cover opacity-90 transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy/80 to-transparent" />
+      </div>
+
+      <div className="p-6">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="rounded-full bg-cream px-3 py-1 text-xs font-semibold text-navy">
+            {course.nivel}
+          </span>
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${progressColor}`}>
+            {progressLabel}
+          </span>
+        </div>
+
+        <h3 className="mb-2 text-xl font-bold text-navy">
+          {course.titulo}
+        </h3>
+
+        {course.progress === "in-progress" && (
+          <div className="mb-4">
+            <div className="mb-1 flex items-center justify-between text-sm">
+              <span className="text-navy-light">Progresso</span>
+              <span className="font-semibold text-navy">{course.progressPercentage}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-cream">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-300"
+                style={{ width: `${course.progressPercentage}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="mb-4 flex items-center gap-4 text-sm text-navy-light">
+          <div className="flex items-center gap-1">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>{course.duracao}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            <span>{course.dataInicio}</span>
+          </div>
+        </div>
+
+        <div className="rounded-full bg-navy px-6 py-2.5 text-center text-sm font-semibold text-white transition-colors group-hover:bg-navy-dark">
+          Ver Detalhes
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function AvailableCourseCard({
+  course,
+  isEnrolled,
+  isEnrolling,
+  onEnroll,
+}: {
+  course: Course;
+  isEnrolled: boolean;
+  isEnrolling: boolean;
+  onEnroll: () => void;
+}) {
+  const statusInfo = {
+    "em-andamento": { label: "Em Andamento", color: "bg-green-600" },
+    "proximo": { label: "Próximo", color: "bg-primary" },
+    "em-breve": { label: "Em Breve", color: "bg-navy-light" },
+  }[course.status];
+
+  return (
+    <div className="group overflow-hidden rounded-2xl border border-navy-light/10 bg-white shadow-md transition-all hover:shadow-xl">
+      <Link href={`/curso/${course.id}`} className="block">
+        <div className="relative h-48 overflow-hidden bg-navy">
+          <Image
+            src={course.imagem}
+            alt={course.titulo}
+            fill
+            className="object-cover opacity-90 transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-navy/80 to-transparent" />
+          <div className="absolute right-4 top-4">
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${statusInfo.color}`}>
+              {statusInfo.label}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <span className="mb-3 inline-block rounded-full bg-cream px-3 py-1 text-xs font-semibold text-navy">
+            {course.nivel}
+          </span>
+
+          <h3 className="mb-2 text-xl font-bold text-navy">
+            {course.titulo}
+          </h3>
+
+          <p className="mb-4 line-clamp-2 text-sm text-navy-light">
+            {course.descricao}
+          </p>
+
+          <div className="mb-4 flex flex-wrap gap-3 text-sm text-navy-light">
+            <div className="flex items-center gap-1">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>{course.duracao}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <span>{course.dataInicio}</span>
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      <div className="px-6 pb-6">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onEnroll();
+          }}
+          disabled={isEnrolled || isEnrolling}
+          className={`w-full rounded-full px-6 py-2.5 text-sm font-semibold transition-colors ${
+            isEnrolled
+              ? "bg-green-600 text-white cursor-default"
+              : isEnrolling
+              ? "bg-navy-light text-white cursor-wait"
+              : "bg-primary text-white hover:bg-primary-dark"
+          }`}
+        >
+          {isEnrolled ? "✓ Inscrito" : isEnrolling ? "Inscrevendo..." : "Inscrever-se"}
+        </button>
+      </div>
+    </div>
   );
 }
