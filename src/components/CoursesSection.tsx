@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 
 type Status = "em-andamento" | "proximo" | "em-breve";
@@ -280,13 +281,9 @@ function CourseDialog({
           </div>
 
           {/* CTA */}
-          <button
-            onClick={() => {
-              onClose();
-              setTimeout(() => {
-                document.getElementById("inscreva-se")?.scrollIntoView({ behavior: "smooth" });
-              }, 100);
-            }}
+          <Link
+            href="/login"
+            onClick={() => onClose()}
             className="mt-10 inline-flex cursor-pointer items-center rounded-full bg-primary px-10 py-3.5 text-base font-semibold text-white transition-colors hover:bg-primary-dark"
           >
             Inscreva-se Agora
@@ -303,7 +300,7 @@ function CourseDialog({
                 d="M9 5l7 7-7 7"
               />
             </svg>
-          </button>
+          </Link>
         </div>
       </div>
     </div>

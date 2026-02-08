@@ -3,9 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Show login button only on home page
+  const showLoginButton = pathname === "/";
+  // Show logout button on dashboard page
+  const showLogoutButton = pathname === "/dashboard";
 
   return (
     <header className="sticky top-0 z-50 bg-navy shadow-md">
@@ -47,12 +54,25 @@ export function Header() {
           >
             Contato
           </Link>
-          <Link
-            href="#inscreva-se"
-            className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
-          >
-            Inscreva-se
-          </Link>
+          {showLoginButton && (
+            <Link
+              href="/login"
+              className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+            >
+              Login
+            </Link>
+          )}
+          {showLogoutButton && (
+            <button
+              onClick={() => {
+                // For now, just redirect to home. In a real app, this would clear auth state
+                window.location.href = "/";
+              }}
+              className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+            >
+              Logout
+            </button>
+          )}
         </nav>
 
         <button
@@ -96,13 +116,26 @@ export function Header() {
             >
               Contato
             </Link>
-            <Link
-              href="#inscreva-se"
-              onClick={() => setMenuOpen(false)}
-              className="rounded-full bg-primary px-6 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
-            >
-              Inscreva-se
-            </Link>
+            {showLoginButton && (
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+              >
+                Login
+              </Link>
+            )}
+            {showLogoutButton && (
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  window.location.href = "/";
+                }}
+                className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+              >
+                Logout
+              </button>
+            )}
           </div>
         </nav>
       )}

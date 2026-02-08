@@ -14,10 +14,10 @@ export function CTASection() {
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link
-            href="#cursos"
+            href="/login"
             className="w-full rounded-full bg-white px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-cream sm:w-auto"
           >
-            Ver Cursos Disponíveis
+            Inscreva-se Agora
           </Link>
           <a
             href="https://api.whatsapp.com/send?phone=5544999999999&text=Olá! Gostaria de saber mais sobre os cursos do Instituto Casa Bíblica."

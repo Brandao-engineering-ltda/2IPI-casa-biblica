@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Instituto Casa Bíblica | 2ª IPI de Maringá",
+  title: "Instituto Casa Bíblica | Somos Casa",
   description:
     "Cursos bíblicos da Segunda Igreja Presbiteriana Independente de Maringá. Somos Casa.",
 };
