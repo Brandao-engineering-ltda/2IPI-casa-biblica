@@ -9,7 +9,7 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-3">
               <Image
-                src="/logo-2ipi.jpg"
+                src="/logo-3d.png"
                 alt="Logo 2ª IPI de Maringá"
                 width={40}
                 height={40}
@@ -37,7 +37,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="#cursos"
+                  href="/#cursos"
                   className="text-sm text-cream-dark transition-colors hover:text-primary-light"
                 >
                   Cursos
@@ -45,7 +45,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#sobre"
+                  href="/#sobre"
                   className="text-sm text-cream-dark transition-colors hover:text-primary-light"
                 >
                   Sobre o Instituto
@@ -53,7 +53,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#inscreva-se"
+                  href="/login"
                   className="text-sm text-cream-dark transition-colors hover:text-primary-light"
                 >
                   Inscreva-se

@@ -52,7 +52,7 @@ export function AboutSection() {
 
           <div className="flex items-center justify-center">
             <Image
-              src="/somos-casa.png"
+              src="/somos-casa-logo.jpg"
               alt="SOMOS CASA — 2 IPI de Maringá"
               width={400}
               height={400}

@@ -25,7 +25,7 @@ export default function LoginPage() {
         <div className="rounded-2xl border border-cream-dark/10 bg-navy p-8 shadow-xl">
           <div className="flex flex-col items-center">
             <Image
-              src="/logo-2ipi.jpg"
+              src="/logo-3d.png"
               alt="Logo Instituto Casa Bíblica"
               width={64}
               height={64}

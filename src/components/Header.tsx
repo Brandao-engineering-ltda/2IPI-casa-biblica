@@ -19,7 +19,7 @@ export function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/logo-2ipi.jpg"
+            src="/logo-3d.png"
             alt="Logo 2ª IPI de Maringá"
             width={44}
             height={44}
@@ -37,19 +37,19 @@ export function Header() {
 
         <nav className="hidden items-center gap-8 md:flex">
           <Link
-            href="#cursos"
+            href="/#cursos"
             className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
           >
             Cursos
           </Link>
           <Link
-            href="#sobre"
+            href="/#sobre"
             className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
           >
             Sobre
           </Link>
           <Link
-            href="#contato"
+            href="/#contato"
             className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
           >
             Contato
@@ -96,21 +96,21 @@ export function Header() {
         <nav className="border-t border-navy-light bg-navy px-6 py-4 md:hidden">
           <div className="flex flex-col gap-4">
             <Link
-              href="#cursos"
+              href="/#cursos"
               onClick={() => setMenuOpen(false)}
               className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
             >
               Cursos
             </Link>
             <Link
-              href="#sobre"
+              href="/#sobre"
               onClick={() => setMenuOpen(false)}
               className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
             >
               Sobre
             </Link>
             <Link
-              href="#contato"
+              href="/#contato"
               onClick={() => setMenuOpen(false)}
               className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
             >
