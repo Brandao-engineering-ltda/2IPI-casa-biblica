@@ -217,7 +217,7 @@ function CourseDialog({
         <div className="relative flex flex-col items-center p-10 text-center md:p-14">
           {/* Logo */}
           <Image
-            src="/logo-2ipi.jpg"
+            src="/logo-3d.png"
             alt="Logo 2ª IPI de Maringá"
             width={56}
             height={56}

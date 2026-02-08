@@ -6,7 +6,7 @@ export function Loading() {
       <div className="flex flex-col items-center gap-6">
         <div className="relative">
           <Image
-            src="/logo-2ipi.jpg"
+            src="/logo-3d.png"
             alt="Instituto Casa Bíblica"
             width={80}
             height={80}

@@ -30,7 +30,7 @@ export default function DashboardPage() {
       <div className="relative mx-auto max-w-7xl px-6 py-16">
         <div className="flex items-center gap-4">
           <Image
-            src="/logo-2ipi.jpg"
+            src="/logo-3d.png"
             alt="Logo Instituto Casa Bíblica"
             width={48}
             height={48}

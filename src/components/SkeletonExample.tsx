@@ -10,6 +10,8 @@ interface UserProfile {
   bio: string;
 }
 
+import Image from "next/image";
+
 export function SkeletonExample() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +22,7 @@ export function SkeletonExample() {
       setUser({
         name: "João Silva",
         email: "joao.silva@email.com",
-        avatar: "/logo-2ipi.jpg",
+        avatar: "/logo-3d.png",
         bio: "Estudante dedicado dos cursos bíblicos do Instituto Casa Bíblica."
       });
       setIsLoading(false);
@@ -51,9 +53,11 @@ export function SkeletonExample() {
   return (
     <div className="rounded-lg border border-cream-dark/10 bg-navy p-6">
       <div className="flex items-center gap-4 mb-4">
-        <img
+        <Image
           src={user.avatar}
           alt={user.name}
+          width={64}
+          height={64}
           className="h-16 w-16 rounded-full"
         />
         <div>

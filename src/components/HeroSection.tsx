@@ -10,7 +10,7 @@ export function HeroSection() {
 
       <div className="relative mx-auto flex max-w-7xl flex-col items-center px-6 py-24 text-center lg:py-36">
         <Image
-          src="/logo-2ipi.jpg"
+          src="/logo-3d.png"
           alt="Logo Instituto Casa Bíblica"
           width={80}
           height={80}
