@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { saveUserData } from "@/lib/storage";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,28 @@ export default function LoginPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // Save mock user data for demo purposes
+    // In a real app, this would validate credentials against a backend
+    const mockUserData = {
+      nomeCompleto: "Usuário Demo",
+      email: email || "demo@email.com",
+      telefone: "(11) 99999-9999",
+      dataNascimento: "1990-01-01",
+      sexo: "masculino",
+      estadoCivil: "solteiro",
+      escolaridade: "superior-completo",
+      profissao: "Estudante",
+      endereco: "Rua Demo, 123",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01234-567",
+      denominacao: "Igreja Evangélica",
+      comoConheceu: "Demo",
+      observacoes: "Usuário de demonstração"
+    };
+
+    saveUserData(mockUserData);
     router.push("/dashboard");
   }
 
@@ -82,7 +105,23 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 flex flex-col items-center gap-4">
+            <div className="relative w-full">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-cream-dark/20"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-navy px-2 text-cream-dark">ou</span>
+              </div>
+            </div>
+
+            <Link
+              href="/registro"
+              className="w-full rounded-full border border-primary px-8 py-3.5 text-center text-base font-semibold text-primary transition-colors hover:bg-primary hover:text-white"
+            >
+              Criar Conta
+            </Link>
+
             <Link
               href="/"
               className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
