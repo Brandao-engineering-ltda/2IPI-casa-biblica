@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { useState } from "react";
+import { getUserData } from "@/lib/storage";
 
 type Status = "em-andamento" | "proximo" | "em-breve";
 
@@ -267,11 +267,18 @@ export const cursos: Record<string, Course> = {
 export default function CoursePageClient() {
   const params = useParams();
   const router = useRouter();
-  const [isEnrolling, setIsEnrolling] = useState(false);
-  const [isEnrolled, setIsEnrolled] = useState(false);
 
   const courseId = params.id as string;
   const course = cursos[courseId];
+
+  const handleBack = () => {
+    const userData = getUserData();
+    if (userData) {
+      router.push("/dashboard");
+    } else {
+      router.back();
+    }
+  };
 
   if (!course) {
     return (
@@ -279,7 +286,7 @@ export default function CoursePageClient() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-navy">Curso não encontrado</h1>
           <button
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="mt-4 text-primary hover:text-primary-dark"
           >
             ← Voltar
@@ -296,11 +303,7 @@ export default function CoursePageClient() {
   }[course.status];
 
   const handleEnroll = async () => {
-    setIsEnrolling(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsEnrolled(true);
-    setIsEnrolling(false);
+    router.push(`/curso/${courseId}/inscricao`);
   };
 
   return (
@@ -458,24 +461,13 @@ export default function CoursePageClient() {
 
                 <button
                   onClick={handleEnroll}
-                  disabled={isEnrolled || isEnrolling}
-                  className={`w-full rounded-full px-8 py-4 text-base font-semibold transition-all ${
-                    isEnrolled
-                      ? "bg-green-600 text-white"
-                      : isEnrolling
-                      ? "bg-navy-light text-white"
-                      : "bg-primary text-white hover:bg-primary-dark hover:shadow-lg"
-                  }`}
+                  className="w-full rounded-full bg-primary px-8 py-4 text-base font-semibold text-white transition-all hover:bg-primary-dark hover:shadow-lg"
                 >
-                  {isEnrolled
-                    ? "✓ Inscrito com Sucesso"
-                    : isEnrolling
-                    ? "Inscrevendo..."
-                    : "Inscrever-se Agora"}
+                  Inscrever-se Agora
                 </button>
 
                 <button
-                  onClick={() => router.back()}
+                  onClick={handleBack}
                   className="mt-4 w-full rounded-full border-2 border-navy-light/20 px-8 py-3 text-sm font-semibold text-navy transition-colors hover:border-navy-light hover:bg-cream"
                 >
                   ← Voltar
