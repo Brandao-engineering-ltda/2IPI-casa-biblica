@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { getUserData, getPurchasedCourses } from '@/lib/storage'
 import DashboardPage from '../../app/dashboard/page'
 
 // Mock DashboardSkeleton component
@@ -6,9 +7,16 @@ jest.mock('@/components/Skeleton', () => ({
   DashboardSkeleton: () => <div data-testid="dashboard-skeleton">Loading...</div>,
 }))
 
+jest.mock('@/lib/storage', () => ({
+  getUserData: jest.fn(),
+  getPurchasedCourses: jest.fn(),
+}))
+
 describe('DashboardPage', () => {
   beforeEach(() => {
     jest.useFakeTimers()
+    ;(getUserData as jest.Mock).mockReturnValue(null)
+    ;(getPurchasedCourses as jest.Mock).mockReturnValue([])
   })
 
   afterEach(() => {
@@ -63,9 +71,10 @@ describe('DashboardPage', () => {
     
     await screen.findByText('Cursos Disponíveis')
     
-    // Check for course titles
+    // Check for course titles (use getAllByText for titles that appear in multiple courses)
     expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument()
-    expect(screen.getByText('Hermenêutica Bíblica')).toBeInTheDocument()
+    const hermeneuticaElements = screen.getAllByText('Hermenêutica Bíblica')
+    expect(hermeneuticaElements.length).toBeGreaterThan(0)
     expect(screen.getByText('Antigo Testamento')).toBeInTheDocument()
     
     // Check for enrollment buttons
@@ -73,47 +82,35 @@ describe('DashboardPage', () => {
     expect(enrollButtons.length).toBeGreaterThan(0)
   })
 
-  it('handles course enrollment', async () => {
+  it('links to inscription page when enrolling', async () => {
     render(<DashboardPage />)
     jest.advanceTimersByTime(1000)
     
     await screen.findByText('Cursos Disponíveis')
     
-    const enrollButtons = screen.getAllByText('Inscrever-se')
-    const firstEnrollButton = enrollButtons[0]
+    const enrollLinks = screen.getAllByRole('link', { name: 'Inscrever-se' })
+    expect(enrollLinks.length).toBeGreaterThan(0)
     
-    // Click enroll button
-    fireEvent.click(firstEnrollButton)
-    
-    // Should show loading state
-    await waitFor(() => {
-      expect(screen.getByText('Inscrevendo...')).toBeInTheDocument()
-    })
-    
-    // Fast-forward enrollment API call
-    jest.advanceTimersByTime(1000)
-    
-    // Should show enrolled state
-    await waitFor(() => {
-      expect(screen.getByText('✓ Inscrito')).toBeInTheDocument()
-    })
+    // First available course is Fundamentos da Fé
+    const fundamentosEnrollLink = enrollLinks.find(
+      (link) => link.getAttribute('href') === '/curso/fundamentos-da-fe/inscricao'
+    )
+    expect(fundamentosEnrollLink).toBeInTheDocument()
   })
 
-  it('shows enrolled button as disabled', async () => {
+  it('shows enrolled state when user has purchased course', async () => {
+    ;(getPurchasedCourses as jest.Mock).mockReturnValue([
+      { courseId: 'fundamentos-da-fe', purchaseDate: new Date().toISOString() },
+    ])
+
     render(<DashboardPage />)
     jest.advanceTimersByTime(1000)
-    
-    await screen.findByText('Cursos Disponíveis')
-    
-    const enrollButtons = screen.getAllByText('Inscrever-se')
-    fireEvent.click(enrollButtons[0])
-    
-    jest.advanceTimersByTime(1000)
-    
-    await waitFor(() => {
-      const enrolledButton = screen.getByText('✓ Inscrito')
-      expect(enrolledButton).toBeDisabled()
-    })
+
+    await screen.findByText('Meus Cursos')
+
+    // Purchased course appears in user courses section
+    expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument()
+    expect(screen.getByText('Próximos Cursos')).toBeInTheDocument()
   })
 
   it('renders back to home link', async () => {

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { act } from 'react';
 import CoursePage from '@/app/curso/[id]/page';
 import { useParams, useRouter } from 'next/navigation';
@@ -94,33 +94,16 @@ describe('Course Detail Page', () => {
     expect(professorImage).toBeInTheDocument();
   });
 
-  it('handles enrollment flow', async () => {
-    jest.useFakeTimers();
-    
+  it('handles enrollment flow', () => {
     render(<CoursePage />);
 
     const enrollButton = screen.getByRole('button', { name: /Inscrever-se Agora/i });
     expect(enrollButton).toBeInTheDocument();
 
-    // Click enrollment button
-    await act(async () => {
-      fireEvent.click(enrollButton);
-    });
+    fireEvent.click(enrollButton);
 
-    // Check loading state
-    expect(screen.getByText(/Inscrevendo.../i)).toBeInTheDocument();
-
-    // Fast-forward time to complete enrollment
-    await act(async () => {
-      jest.advanceTimersByTime(2000);
-    });
-
-    // Wait for enrollment to complete
-    await waitFor(() => {
-      expect(screen.getByText(/Inscrito com Sucesso/i)).toBeInTheDocument();
-    });
-
-    jest.useRealTimers();
+    // Page redirects to inscription page
+    expect(mockPush).toHaveBeenCalledWith('/curso/fundamentos-da-fe/inscricao');
   });
 
   it('navigates back when back button is clicked', () => {

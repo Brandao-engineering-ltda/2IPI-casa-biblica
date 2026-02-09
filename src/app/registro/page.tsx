@@ -141,7 +141,7 @@ export default function RegistroPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-6">
+          <form onSubmit={handleSubmit} noValidate className="mt-8 flex flex-col gap-6">
             {/* Dados Pessoais */}
             <div>
               <h2 className="mb-4 text-lg font-semibold text-white">Dados Pessoais</h2>

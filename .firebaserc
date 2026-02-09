@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "ipi-instituto-casa-biblica",
+    "staging": "instituto-casa-biblica-staging",
+    "production": "instituto-casa-biblica"
+  },
+  "targets": {
+    "ipi-instituto-casa-biblica": {
+      "hosting": {
+        "staging": ["instituto-casa-biblica-staging"],
+        "production": ["instituto-casa-biblica"]
+      }
+    }
+  }
+}
