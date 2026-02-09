@@ -258,7 +258,7 @@ describe('DashboardPage', () => {
       }, { timeout: 1500 });
     });
 
-    it('should mark enrolled courses with "Inscrito" badge', async () => {
+    it('should not show purchased courses in available courses section', async () => {
       (getUserData as jest.Mock).mockReturnValue(null);
       (getPurchasedCourses as jest.Mock).mockReturnValue([
         {
@@ -273,7 +273,67 @@ describe('DashboardPage', () => {
       render(<DashboardPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/✓ inscrito/i)).toBeInTheDocument();
+        // The purchased course should appear in "My Courses" section
+        const myCoursesTitles = screen.getAllByText(/fundamentos da fé/i);
+        expect(myCoursesTitles.length).toBeGreaterThan(0);
+        
+        // But should NOT have "Inscrever-se" button (which only appears in available courses)
+        const availableSection = screen.getByText(/cursos disponíveis/i).closest('div');
+        if (availableSection) {
+          // Check that "Fundamentos da Fé" doesn't appear in the available courses section
+          const availableCourseCards = availableSection.querySelectorAll('a[href*="/curso/"]');
+          const fundamentos = Array.from(availableCourseCards).find(card => 
+            card.textContent?.includes('Fundamentos da Fé')
+          );
+          expect(fundamentos).toBeUndefined();
+        }
+      }, { timeout: 1500 });
+    });
+
+    it('should show message when all courses are purchased', async () => {
+      (getUserData as jest.Mock).mockReturnValue(null);
+      (getPurchasedCourses as jest.Mock).mockReturnValue([
+        {
+          courseId: "fundamentos-da-fe",
+          purchaseDate: "2026-02-08T10:00:00Z",
+          paymentMethod: "pix",
+          amount: 250.00,
+          status: "paid"
+        },
+        {
+          courseId: "teologia-sistematica",
+          purchaseDate: "2026-02-08T10:00:00Z",
+          paymentMethod: "pix",
+          amount: 380.00,
+          status: "paid"
+        },
+        {
+          courseId: "hermeneutica-biblica",
+          purchaseDate: "2026-02-08T10:00:00Z",
+          paymentMethod: "pix",
+          amount: 320.00,
+          status: "paid"
+        },
+        {
+          courseId: "hermeneutica",
+          purchaseDate: "2026-02-08T10:00:00Z",
+          paymentMethod: "pix",
+          amount: 320.00,
+          status: "paid"
+        },
+        {
+          courseId: "antigo-testamento",
+          purchaseDate: "2026-02-08T10:00:00Z",
+          paymentMethod: "pix",
+          amount: 450.00,
+          status: "paid"
+        }
+      ]);
+
+      render(<DashboardPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/você já está matriculado em todos os cursos disponíveis/i)).toBeInTheDocument();
       }, { timeout: 1500 });
     });
   });
