@@ -114,9 +114,9 @@ describe('Complete User Flow Integration Tests', () => {
         expect(screen.getByText(/✓ pago/i)).toBeInTheDocument();
       });
 
-      // Verify "Acessar Conteúdo" button is shown
+      // Verify "Acessar Conteudo" button is shown (UI uses no accents)
       await waitFor(() => {
-        expect(screen.getByText(/acessar conteúdo/i)).toBeInTheDocument();
+        expect(screen.getByText(/acessar conteudo/i)).toBeInTheDocument();
       });
 
       // STEP 4: Verify course links to content page
