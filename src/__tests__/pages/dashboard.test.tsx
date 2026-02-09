@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { getUserData, getPurchasedCourses } from '@/lib/storage'
 import DashboardPage from '../../app/dashboard/page'
 
@@ -110,15 +110,15 @@ describe('DashboardPage', () => {
 
     // Purchased course appears in user courses section
     expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument()
-    expect(screen.getByText('Próximos Cursos')).toBeInTheDocument()
+    expect(screen.getByText('Meus Próximos Cursos')).toBeInTheDocument()
   })
 
-  it('renders back to home link', async () => {
+  it('renders dashboard without back-to-home link (handled by layout/header)', async () => {
     render(<DashboardPage />)
     jest.advanceTimersByTime(1000)
-    
-    const backLink = await screen.findByText(/voltar para a página inicial/i)
-    expect(backLink.closest('a')).toHaveAttribute('href', '/')
+    await screen.findByText('Meus Cursos')
+    // Dashboard content is self-contained; navigation is in layout/header
+    expect(screen.getByText('Meus Cursos')).toBeInTheDocument()
   })
 
   it('has correct background styling', async () => {

@@ -213,7 +213,7 @@ export default function DashboardPage() {
               {/* Upcoming Enrolled Courses */}
               {upcomingEnrolledCourses.length > 0 && (
                 <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-navy mb-6">Próximos Cursos</h2>
+                  <h2 className="text-2xl font-bold text-navy mb-6">Meus Próximos Cursos</h2>
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {upcomingEnrolledCourses.map((course) => (
                       <UserCourseCard key={course.id} course={course} />
@@ -289,15 +289,6 @@ export default function DashboardPage() {
                 })}
             </div>
           )}
-        </div>
-
-        <div className="mt-12 text-center">
-          <Link
-            href="/"
-            className="text-sm font-medium text-navy-light transition-colors hover:text-primary"
-          >
-            ← Voltar para a página inicial
-          </Link>
         </div>
       </div>
     </section>
