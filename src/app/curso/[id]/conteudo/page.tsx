@@ -56,7 +56,7 @@ const coursesContent: Record<string, CourseContent> = {
             title: "O que é Teologia?",
             duration: "25 min",
             type: "video",
-            url: "https://www.youtube.com/embed/5T3VJMx-OqE",
+            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
             description: "Introdução ao estudo da teologia e sua importância para a vida cristã.",
             completed: false
           },
@@ -65,7 +65,7 @@ const coursesContent: Record<string, CourseContent> = {
             title: "As Fontes da Teologia",
             duration: "30 min",
             type: "video",
-            url: "https://www.youtube.com/embed/kP8XxYWT5GM",
+            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
             description: "Compreendendo as fontes primárias e secundárias da teologia.",
             completed: false
           },
@@ -89,7 +89,7 @@ const coursesContent: Record<string, CourseContent> = {
             title: "Os Atributos de Deus",
             duration: "35 min",
             type: "video",
-            url: "https://www.youtube.com/embed/Xj7mJgPP3aw",
+            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
             description: "Estudo dos atributos comunicáveis e incomunicáveis de Deus.",
             completed: false
           },
@@ -122,7 +122,7 @@ const coursesContent: Record<string, CourseContent> = {
             title: "O Pecado e suas Consequências",
             duration: "30 min",
             type: "video",
-            url: "https://www.youtube.com/embed/1IAhDGYlpqY",
+            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
             description: "Entendendo a queda da humanidade e suas implicações.",
             completed: false
           },
@@ -131,7 +131,7 @@ const coursesContent: Record<string, CourseContent> = {
             title: "A Obra de Cristo",
             duration: "45 min",
             type: "video",
-            url: "https://www.youtube.com/embed/ZKvTz35f_lg",
+            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
             description: "A pessoa e obra redentora de Jesus Cristo.",
             completed: false
           },
@@ -140,7 +140,7 @@ const coursesContent: Record<string, CourseContent> = {
             title: "Justificação pela Fé",
             duration: "35 min",
             type: "video",
-            url: "https://www.youtube.com/embed/QmHXYhpEDfM",
+            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
             description: "Como somos justificados diante de Deus.",
             completed: false
           }
@@ -168,7 +168,7 @@ const coursesContent: Record<string, CourseContent> = {
             title: "Método Teológico",
             duration: "40 min",
             type: "video",
-            url: "https://www.youtube.com/embed/W_VBVgWn-2I",
+            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
             description: "Como fazer teologia de forma sistemática.",
             completed: false
           }
@@ -196,7 +196,7 @@ const coursesContent: Record<string, CourseContent> = {
             title: "Contexto Histórico",
             duration: "35 min",
             type: "video",
-            url: "https://www.youtube.com/embed/q-aIj4ywu9E",
+            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
             description: "A importância do contexto histórico na interpretação.",
             completed: false
           }

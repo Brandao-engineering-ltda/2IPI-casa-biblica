@@ -248,19 +248,47 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {upcomingCourses.map((course) => {
-              const isEnrolled = enrolledCourseIds.has(course.id);
+          {upcomingCourses.filter((course) => !enrolledCourseIds.has(course.id)).length === 0 ? (
+            <div className="rounded-2xl border-2 border-dashed border-navy-light/20 bg-white p-12 text-center">
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-cream">
+                <svg
+                  className="h-10 w-10 text-navy-light"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-navy mb-2">
+                Você já está matriculado em todos os cursos disponíveis
+              </h3>
+              <p className="text-navy-light">
+                Continue acompanhando seus cursos acima. Novos cursos serão adicionados em breve!
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {upcomingCourses
+                .filter((course) => !enrolledCourseIds.has(course.id)) // Filter out purchased courses
+                .map((course) => {
+                  const isEnrolled = enrolledCourseIds.has(course.id);
 
-              return (
-                <AvailableCourseCard
-                  key={course.id}
-                  course={course}
-                  isEnrolled={isEnrolled}
-                />
-              );
-            })}
-          </div>
+                  return (
+                    <AvailableCourseCard
+                      key={course.id}
+                      course={course}
+                      isEnrolled={isEnrolled}
+                    />
+                  );
+                })}
+            </div>
+          )}
         </div>
 
         <div className="mt-12 text-center">
