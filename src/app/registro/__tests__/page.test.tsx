@@ -222,6 +222,7 @@ describe('RegistroPage', () => {
 
   describe('Form Submission', () => {
     it('should redirect to dashboard on successful submission', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { saveUserData } = require('@/lib/storage');
       
       render(<RegistroPage />);
@@ -250,6 +251,7 @@ describe('RegistroPage', () => {
     });
 
     it('should save user data without password fields', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { saveUserData } = require('@/lib/storage');
       
       render(<RegistroPage />);

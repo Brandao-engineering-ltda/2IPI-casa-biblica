@@ -2,19 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { clearUserData, getUserData } from "@/lib/storage";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    // Check if user is logged in
+  // Determine if user is logged in (check on every pathname change)
+  const isLoggedIn = useMemo(() => {
     const userData = getUserData();
-    setIsLoggedIn(userData !== null);
+    return userData !== null;
+    // We intentionally include pathname to re-check on route changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   // Show nav links only on home page

@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { getUserData, getPurchasedCourses } from "@/lib/storage";
+import { getPurchasedCourses } from "@/lib/storage";
 
 interface Lesson {
   id: string;
@@ -214,7 +214,6 @@ export default function CourseContentPage() {
 
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
-  const [isPurchased, setIsPurchased] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -228,7 +227,7 @@ export default function CourseContentPage() {
       return;
     }
 
-    setIsPurchased(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(false);
 
     // Expand first module by default

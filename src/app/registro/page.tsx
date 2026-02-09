@@ -31,7 +31,6 @@ export default function RegistroPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(true);
-  const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -108,7 +107,8 @@ export default function RegistroPage() {
 
     // Simulate API call
     setTimeout(() => {
-      // Save user data to localStorage
+      // Save user data to localStorage (excluding passwords for security)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { senha, confirmarSenha, ...userData } = formData;
       saveUserData(userData);
       

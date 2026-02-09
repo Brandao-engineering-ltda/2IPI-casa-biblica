@@ -181,6 +181,7 @@ describe('InscricaoPage (Payment Page)', () => {
 
   describe('Payment Processing', () => {
     it('should save purchase and redirect to dashboard on successful payment', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { savePurchasedCourse } = require('@/lib/storage');
       
       render(<InscricaoPage />);
@@ -201,6 +202,7 @@ describe('InscricaoPage (Payment Page)', () => {
     });
 
     it('should save correct purchase data for PIX payment', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { savePurchasedCourse } = require('@/lib/storage');
       
       render(<InscricaoPage />);
@@ -224,6 +226,7 @@ describe('InscricaoPage (Payment Page)', () => {
     });
 
     it('should save correct purchase data for credit card payment', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { savePurchasedCourse } = require('@/lib/storage');
       
       render(<InscricaoPage />);
@@ -261,6 +264,7 @@ describe('InscricaoPage (Payment Page)', () => {
     });
 
     it('should calculate correct amount for multiple quantities', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { savePurchasedCourse } = require('@/lib/storage');
       
       render(<InscricaoPage />);

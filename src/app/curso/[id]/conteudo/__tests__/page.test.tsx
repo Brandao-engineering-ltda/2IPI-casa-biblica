@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useRouter, useParams } from 'next/navigation';
 import CourseContentPage from '../page';
-import { getUserData, getPurchasedCourses } from '@/lib/storage';
+import { getPurchasedCourses } from '@/lib/storage';
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
