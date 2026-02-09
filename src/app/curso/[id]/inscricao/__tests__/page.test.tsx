@@ -65,8 +65,9 @@ describe('InscricaoPage (Payment Page)', () => {
     it('should allow selecting PIX payment', () => {
       render(<InscricaoPage />);
 
-      const pixOption = screen.getByRole('radio', { name: '' });
-      
+      const radioButtons = screen.getAllByRole('radio');
+      const pixOption = radioButtons[0]; // First radio is PIX
+
       fireEvent.click(pixOption);
 
       expect(pixOption).toBeChecked();

@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useRouter } from 'next/navigation';
-import DashboardPage from '../../dashboard/page';
+import DashboardPage from '@/app/dashboard/page';
 import { 
   saveUserData, 
   savePurchasedCourse, 
@@ -23,14 +23,19 @@ describe('Complete User Flow Integration Tests', () => {
   const mockPush = jest.fn();
 
   beforeEach(() => {
+    jest.useFakeTimers();
     // Clear all data before each test
     clearUserData();
-    
+
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
     });
-    
+
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('End-to-End User Journey', () => {
@@ -83,6 +88,11 @@ describe('Complete User Flow Integration Tests', () => {
       // STEP 3: Dashboard Display
       // -------------------------
       render(<DashboardPage />);
+
+      // Advance past loading delay
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
 
       // Wait for dashboard to load
       await waitFor(() => {
@@ -163,6 +173,10 @@ describe('Complete User Flow Integration Tests', () => {
       // Render dashboard
       render(<DashboardPage />);
 
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
       await waitFor(() => {
         expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
       }, { timeout: 1500 });
@@ -184,6 +198,10 @@ describe('Complete User Flow Integration Tests', () => {
       // No user data, no purchases
       render(<DashboardPage />);
 
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
       await waitFor(() => {
         expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
       }, { timeout: 1500 });
@@ -194,9 +212,7 @@ describe('Complete User Flow Integration Tests', () => {
       });
 
       // Verify available courses are shown
-      await waitFor(() => {
-        expect(screen.getByText(/cursos disponíveis/i)).toBeInTheDocument();
-      });
+      expect(screen.getAllByText(/cursos disponíveis/i).length).toBeGreaterThan(0);
     });
 
     it('should persist data across page reloads', async () => {
@@ -235,15 +251,17 @@ describe('Complete User Flow Integration Tests', () => {
       // Re-render dashboard (simulating page reload)
       render(<DashboardPage />);
 
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
       await waitFor(() => {
         expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
       }, { timeout: 1500 });
 
       // Verify data persisted
-      await waitFor(() => {
-        expect(screen.getByText(/olá, pedro!/i)).toBeInTheDocument();
-        expect(screen.getByText(/hermenêutica bíblica/i)).toBeInTheDocument();
-      });
+      expect(screen.getByText(/olá, pedro!/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/hermenêutica bíblica/i).length).toBeGreaterThan(0);
     });
 
     it('should clear all data on logout', async () => {
@@ -288,6 +306,10 @@ describe('Complete User Flow Integration Tests', () => {
       // Render dashboard after logout
       render(<DashboardPage />);
 
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
       await waitFor(() => {
         expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
       }, { timeout: 1500 });
@@ -321,6 +343,10 @@ describe('Complete User Flow Integration Tests', () => {
       });
 
       render(<DashboardPage />);
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/olá, josé!/i)).toBeInTheDocument();

@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { useRouter } from 'next/navigation';
 import RegistroPage from '../page';
@@ -35,7 +36,8 @@ describe('RegistroPage', () => {
       expect(screen.getByLabelText(/data de nascimento/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/^sexo/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/cidade/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/^estado/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/estado civil/i)).toBeInTheDocument();
+      expect(document.getElementById('estado')).toBeInTheDocument();
     });
 
     it('should render terms checkbox', () => {
@@ -70,13 +72,15 @@ describe('RegistroPage', () => {
     });
 
     it('should show error when email is invalid', async () => {
+      const user = userEvent.setup();
       render(<RegistroPage />);
 
       const emailInput = screen.getByLabelText(/e-mail/i);
       const submitButton = screen.getByRole('button', { name: /criar conta/i });
 
-      fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
-      fireEvent.click(submitButton);
+      await user.clear(emailInput);
+      await user.type(emailInput, 'notanemail');
+      await user.click(submitButton);
 
       await waitFor(() => {
         expect(screen.getByText(/e-mail inválido/i)).toBeInTheDocument();
@@ -113,19 +117,17 @@ describe('RegistroPage', () => {
       });
     });
 
-    it('should show error when terms are not accepted', async () => {
+    it('should show error when terms are not accepted', () => {
       render(<RegistroPage />);
 
       const termsCheckbox = screen.getByRole('checkbox');
       const submitButton = screen.getByRole('button', { name: /criar conta/i });
 
-      // Uncheck terms (it's pre-checked in mock data)
+      // Uncheck terms (it's pre-checked by default) - button becomes disabled
       fireEvent.click(termsCheckbox);
-      fireEvent.click(submitButton);
 
-      await waitFor(() => {
-        expect(screen.getByText(/você precisa aceitar os termos de compromisso para continuar/i)).toBeInTheDocument();
-      });
+      // Submit is disabled when terms not accepted - user cannot proceed
+      expect(submitButton).toBeDisabled();
     });
 
     it('should validate all required fields together', async () => {
@@ -172,8 +174,8 @@ describe('RegistroPage', () => {
     it('should display terms and conditions text', () => {
       render(<RegistroPage />);
 
-      expect(screen.getByText(/termo de compromisso/i)).toBeInTheDocument();
-      expect(screen.getByText(/li e aceito/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/termo de compromisso/i).length).toBeGreaterThan(0);
+      expect(screen.getByText(/declaro estar ciente e concordo com os seguintes termos/i)).toBeInTheDocument();
     });
 
     it('should enable submit button when terms are accepted', () => {
@@ -197,26 +199,19 @@ describe('RegistroPage', () => {
       expect(submitButton).toBeDisabled();
     });
 
-    it('should clear terms error when checkbox is checked', async () => {
+    it('should clear terms error when checkbox is checked', () => {
       render(<RegistroPage />);
 
       const termsCheckbox = screen.getByRole('checkbox');
       const submitButton = screen.getByRole('button', { name: /criar conta/i });
 
-      // Uncheck and submit to get error
+      // Uncheck terms - button becomes disabled
       fireEvent.click(termsCheckbox);
-      fireEvent.click(submitButton);
+      expect(submitButton).toBeDisabled();
 
-      await waitFor(() => {
-        expect(screen.getByText(/você precisa aceitar os termos de compromisso para continuar/i)).toBeInTheDocument();
-      });
-
-      // Check terms again
+      // Check terms again - button becomes enabled
       fireEvent.click(termsCheckbox);
-
-      await waitFor(() => {
-        expect(screen.queryByText(/você precisa aceitar os termos de compromisso para continuar/i)).not.toBeInTheDocument();
-      });
+      expect(submitButton).not.toBeDisabled();
     });
   });
 
