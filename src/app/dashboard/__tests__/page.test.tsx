@@ -12,6 +12,7 @@ jest.mock('next/navigation', () => ({
 jest.mock('@/lib/storage', () => ({
   getUserData: jest.fn(),
   getPurchasedCourses: jest.fn(),
+  getCompletedLessons: jest.fn(() => new Set<string>()),
 }));
 
 // Mock Skeleton component
@@ -382,7 +383,7 @@ describe('DashboardPage', () => {
       render(<DashboardPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/acessar conteúdo/i)).toBeInTheDocument();
+        expect(screen.getByText(/acessar conteudo/i)).toBeInTheDocument();
       }, { timeout: 1500 });
     });
 
@@ -432,7 +433,7 @@ describe('DashboardPage', () => {
       render(<DashboardPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/não iniciado/i)).toBeInTheDocument();
+        expect(screen.getByText(/nao iniciado/i)).toBeInTheDocument();
       }, { timeout: 1500 });
     });
   });

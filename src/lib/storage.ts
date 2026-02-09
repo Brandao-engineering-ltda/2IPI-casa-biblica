@@ -71,3 +71,34 @@ export function clearUserData(): void {
     localStorage.removeItem(PURCHASED_COURSES_KEY);
   }
 }
+
+// Lesson progress tracking
+const LESSON_PROGRESS_KEY = "casa_biblica_lesson_progress";
+
+export function getCompletedLessons(courseId: string): Set<string> {
+  if (typeof window !== "undefined") {
+    const data = localStorage.getItem(LESSON_PROGRESS_KEY);
+    const all: Record<string, string[]> = data ? JSON.parse(data) : {};
+    return new Set(all[courseId] || []);
+  }
+  return new Set();
+}
+
+export function toggleLessonComplete(courseId: string, lessonId: string): boolean {
+  if (typeof window !== "undefined") {
+    const data = localStorage.getItem(LESSON_PROGRESS_KEY);
+    const all: Record<string, string[]> = data ? JSON.parse(data) : {};
+    const lessons = new Set(all[courseId] || []);
+
+    if (lessons.has(lessonId)) {
+      lessons.delete(lessonId);
+    } else {
+      lessons.add(lessonId);
+    }
+
+    all[courseId] = Array.from(lessons);
+    localStorage.setItem(LESSON_PROGRESS_KEY, JSON.stringify(all));
+    return lessons.has(lessonId);
+  }
+  return false;
+}

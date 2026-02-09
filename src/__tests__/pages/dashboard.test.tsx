@@ -10,6 +10,7 @@ jest.mock('@/components/Skeleton', () => ({
 jest.mock('@/lib/storage', () => ({
   getUserData: jest.fn(),
   getPurchasedCourses: jest.fn(),
+  getCompletedLessons: jest.fn(() => new Set<string>()),
 }))
 
 describe('DashboardPage', () => {

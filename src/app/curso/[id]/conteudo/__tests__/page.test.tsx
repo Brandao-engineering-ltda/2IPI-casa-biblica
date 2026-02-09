@@ -14,6 +14,8 @@ jest.mock('next/navigation', () => ({
 jest.mock('@/lib/storage', () => ({
   getUserData: jest.fn(),
   getPurchasedCourses: jest.fn(),
+  getCompletedLessons: jest.fn(() => new Set<string>()),
+  toggleLessonComplete: jest.fn(() => false),
 }));
 
 describe('CourseContentPage', () => {
@@ -383,7 +385,7 @@ describe('CourseContentPage', () => {
       render(<CourseContentPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/progresso do curso/i)).toBeInTheDocument();
+        expect(screen.getByText(/progresso/i)).toBeInTheDocument();
         expect(screen.getByText(/0%/i)).toBeInTheDocument();
       }, { timeout: 1500 });
     });

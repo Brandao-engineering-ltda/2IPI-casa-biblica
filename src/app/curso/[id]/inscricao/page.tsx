@@ -71,6 +71,38 @@ const cursos: Record<string, Course> = {
     precoPix: 320.00,
     precoCartao: 350.00,
     parcelasCartao: 3
+  },
+  "hermeneutica": {
+    id: "hermeneutica",
+    titulo: "Hermenêutica Bíblica",
+    descricao: "Aprenda princípios de interpretação bíblica para estudar as Escrituras com profundidade e fidelidade.",
+    duracao: "10 semanas",
+    nivel: "Intermediário",
+    dataInicio: "13 Jul 2026",
+    dataFim: "21 Set 2026",
+    imagem: "/images/cursos/hermeneutica.jpg",
+    professor: "Rev. Maria Santos",
+    cargaHoraria: "30 horas",
+    formato: "Híbrido - Segundas-feiras às 20h",
+    precoPix: 320.00,
+    precoCartao: 350.00,
+    parcelasCartao: 3
+  },
+  "antigo-testamento": {
+    id: "antigo-testamento",
+    titulo: "Antigo Testamento",
+    descricao: "Estudo aprofundado dos livros do Antigo Testamento, seu contexto histórico e sua relevância hoje.",
+    duracao: "16 semanas",
+    nivel: "Intermediário",
+    dataInicio: "28 Set 2026",
+    dataFim: "18 Jan 2027",
+    imagem: "/images/cursos/antigo-testamento.jpg",
+    professor: "Rev. Pedro Oliveira",
+    cargaHoraria: "48 horas",
+    formato: "Presencial - Sábados às 9h",
+    precoPix: 400.00,
+    precoCartao: 440.00,
+    parcelasCartao: 3
   }
 };
 

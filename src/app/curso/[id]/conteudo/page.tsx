@@ -3,208 +3,10 @@
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { getPurchasedCourses } from "@/lib/storage";
-
-interface Lesson {
-  id: string;
-  title: string;
-  duration: string;
-  type: "video" | "pdf" | "text";
-  url?: string;
-  description: string;
-  completed?: boolean;
-}
-
-interface Module {
-  id: string;
-  title: string;
-  lessons: Lesson[];
-}
-
-interface CourseContent {
-  id: string;
-  titulo: string;
-  descricao: string;
-  professor: string;
-  imagem: string;
-  duracao: string;
-  nivel: string;
-  dataInicio: string;
-  dataFim: string;
-  modules: Module[];
-}
-
-const coursesContent: Record<string, CourseContent> = {
-  "fundamentos-da-fe": {
-    id: "fundamentos-da-fe",
-    titulo: "Fundamentos da Fé",
-    descricao: "Estudo das doutrinas essenciais da fé cristã reformada. Base sólida para o crescimento espiritual.",
-    professor: "Rev. João Silva",
-    imagem: "/images/cursos/fundamentos-da-fe.jpg",
-    duracao: "8 semanas",
-    nivel: "Iniciante",
-    dataInicio: "11 Mai 2026",
-    dataFim: "6 Jul 2026",
-    modules: [
-      {
-        id: "modulo-1",
-        title: "Módulo 1: Introdução à Teologia",
-        lessons: [
-          {
-            id: "aula-1",
-            title: "O que é Teologia?",
-            duration: "25 min",
-            type: "video",
-            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
-            description: "Introdução ao estudo da teologia e sua importância para a vida cristã.",
-            completed: false
-          },
-          {
-            id: "aula-2",
-            title: "As Fontes da Teologia",
-            duration: "30 min",
-            type: "video",
-            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
-            description: "Compreendendo as fontes primárias e secundárias da teologia.",
-            completed: false
-          },
-          {
-            id: "pdf-1",
-            title: "Apostila: Conceitos Básicos",
-            duration: "15 páginas",
-            type: "pdf",
-            url: "/materials/fundamentos-modulo1.pdf",
-            description: "Material complementar com definições e conceitos fundamentais.",
-            completed: false
-          }
-        ]
-      },
-      {
-        id: "modulo-2",
-        title: "Módulo 2: A Doutrina de Deus",
-        lessons: [
-          {
-            id: "aula-3",
-            title: "Os Atributos de Deus",
-            duration: "35 min",
-            type: "video",
-            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
-            description: "Estudo dos atributos comunicáveis e incomunicáveis de Deus.",
-            completed: false
-          },
-          {
-            id: "aula-4",
-            title: "A Trindade",
-            duration: "40 min",
-            type: "video",
-            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
-            description: "Compreendendo a doutrina trinitariana nas Escrituras.",
-            completed: false
-          },
-          {
-            id: "pdf-2",
-            title: "Leitura: Confissão de Fé",
-            duration: "20 páginas",
-            type: "pdf",
-            url: "/materials/fundamentos-modulo2.pdf",
-            description: "Trechos selecionados da Confissão de Fé sobre Deus.",
-            completed: false
-          }
-        ]
-      },
-      {
-        id: "modulo-3",
-        title: "Módulo 3: A Doutrina da Salvação",
-        lessons: [
-          {
-            id: "aula-5",
-            title: "O Pecado e suas Consequências",
-            duration: "30 min",
-            type: "video",
-            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
-            description: "Entendendo a queda da humanidade e suas implicações.",
-            completed: false
-          },
-          {
-            id: "aula-6",
-            title: "A Obra de Cristo",
-            duration: "45 min",
-            type: "video",
-            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
-            description: "A pessoa e obra redentora de Jesus Cristo.",
-            completed: false
-          },
-          {
-            id: "aula-7",
-            title: "Justificação pela Fé",
-            duration: "35 min",
-            type: "video",
-            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
-            description: "Como somos justificados diante de Deus.",
-            completed: false
-          }
-        ]
-      }
-    ]
-  },
-  "teologia-sistematica": {
-    id: "teologia-sistematica",
-    titulo: "Teologia Sistemática",
-    descricao: "Estudo aprofundado das principais doutrinas cristãs de forma organizada e sistemática.",
-    professor: "Dr. Maria Santos",
-    imagem: "/images/cursos/panorama-biblico.jpg",
-    duracao: "12 semanas",
-    nivel: "Intermediário",
-    dataInicio: "14 Abr 2026",
-    dataFim: "6 Jul 2026",
-    modules: [
-      {
-        id: "modulo-1",
-        title: "Módulo 1: Introdução à Teologia Sistemática",
-        lessons: [
-          {
-            id: "aula-1",
-            title: "Método Teológico",
-            duration: "40 min",
-            type: "video",
-            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
-            description: "Como fazer teologia de forma sistemática.",
-            completed: false
-          }
-        ]
-      }
-    ]
-  },
-  "hermeneutica-biblica": {
-    id: "hermeneutica-biblica",
-    titulo: "Hermenêutica Bíblica",
-    descricao: "Princípios e métodos para interpretação correta das Escrituras Sagradas.",
-    professor: "Prof. Pedro Costa",
-    imagem: "/images/cursos/hermeneutica.jpg",
-    duracao: "10 semanas",
-    nivel: "Intermediário",
-    dataInicio: "20 Jun 2026",
-    dataFim: "29 Ago 2026",
-    modules: [
-      {
-        id: "modulo-1",
-        title: "Módulo 1: Princípios de Interpretação",
-        lessons: [
-          {
-            id: "aula-1",
-            title: "Contexto Histórico",
-            duration: "35 min",
-            type: "video",
-            url: "https://www.youtube.com/embed/eAvYmE2YYIU",
-            description: "A importância do contexto histórico na interpretação.",
-            completed: false
-          }
-        ]
-      }
-    ]
-  }
-};
+import { useState, useEffect, useCallback } from "react";
+import { getPurchasedCourses, getCompletedLessons, toggleLessonComplete } from "@/lib/storage";
+import { coursesContent } from "@/lib/courseContent";
+import type { Lesson } from "@/lib/courseContent";
 
 export default function CourseContentPage() {
   const params = useParams();
@@ -214,27 +16,57 @@ export default function CourseContentPage() {
 
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [completedSet, setCompletedSet] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
+
+  // Flat list of all lessons in order for prev/next navigation
+  const allLessons = course?.modules.flatMap(m => m.lessons) ?? [];
+
+  const currentIndex = selectedLesson
+    ? allLessons.findIndex(l => l.id === selectedLesson.id)
+    : -1;
+
+  const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
+  const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
+
+  const handleToggleComplete = useCallback(() => {
+    if (!selectedLesson) return;
+    toggleLessonComplete(courseId, selectedLesson.id);
+    setCompletedSet(getCompletedLessons(courseId));
+  }, [selectedLesson, courseId]);
+
+  const handleNavigate = useCallback((lesson: Lesson) => {
+    setSelectedLesson(lesson);
+    // Expand the module containing the target lesson
+    const targetModule = course?.modules.find(m => m.lessons.some(l => l.id === lesson.id));
+    if (targetModule) {
+      setExpandedModules(prev => new Set([...prev, targetModule.id]));
+    }
+  }, [course]);
 
   useEffect(() => {
     // Check if user has purchased this course
     const purchases = getPurchasedCourses();
     const purchased = purchases.some(p => p.courseId === courseId);
-    
+
     if (!purchased) {
-      // Redirect to course preview if not purchased
       router.push(`/curso/${courseId}`);
       return;
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsLoading(false);
+    // Defer state updates to avoid synchronous setState in effect (cascading renders)
+    const completed = getCompletedLessons(courseId);
+    const nextExpanded = course?.modules.length
+      ? new Set([course.modules[0].id])
+      : new Set<string>();
+    const nextLesson = course?.modules.length ? course.modules[0].lessons[0] ?? null : null;
 
-    // Expand first module by default
-    if (course?.modules.length > 0) {
-      setExpandedModules(new Set([course.modules[0].id]));
-      setSelectedLesson(course.modules[0].lessons[0]);
-    }
+    queueMicrotask(() => {
+      setCompletedSet(completed);
+      setIsLoading(false);
+      setExpandedModules(nextExpanded);
+      if (nextLesson) setSelectedLesson(nextLesson);
+    });
   }, [courseId, course, router]);
 
   if (isLoading) {
@@ -271,10 +103,8 @@ export default function CourseContentPage() {
     setExpandedModules(newExpanded);
   };
 
-  const totalLessons = course.modules.reduce((acc, module) => acc + module.lessons.length, 0);
-  const completedLessons = course.modules.reduce((acc, module) => 
-    acc + module.lessons.filter(l => l.completed).length, 0
-  );
+  const totalLessons = allLessons.length;
+  const completedLessons = allLessons.filter(l => completedSet.has(l.id)).length;
   const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   return (
@@ -290,8 +120,16 @@ export default function CourseContentPage() {
               Voltar ao Dashboard
             </Link>
             <div className="flex items-center gap-4">
+              <div className="hidden sm:block w-32">
+                <div className="h-2 rounded-full bg-cream-dark">
+                  <div
+                    className="h-2 rounded-full bg-primary transition-all duration-500"
+                    style={{ width: `${progressPercentage}%` }}
+                  />
+                </div>
+              </div>
               <div className="text-right">
-                <p className="text-sm text-navy-light">Progresso do Curso</p>
+                <p className="text-sm text-navy-light">Progresso</p>
                 <p className="text-lg font-bold text-navy">{progressPercentage}%</p>
               </div>
               <div className="h-10 w-10 rounded-full bg-cream flex items-center justify-center">
@@ -363,20 +201,18 @@ export default function CourseContentPage() {
                               }`}
                             >
                               <div className="flex-shrink-0 mt-0.5">
-                                {lesson.type === "video" && (
+                                {completedSet.has(lesson.id) ? (
+                                  <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                ) : lesson.type === "video" ? (
                                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
-                                )}
-                                {lesson.type === "pdf" && (
+                                ) : (
                                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                  </svg>
-                                )}
-                                {lesson.completed && (
-                                  <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                   </svg>
                                 )}
                               </div>
@@ -450,19 +286,28 @@ export default function CourseContentPage() {
                 {/* Mark as Complete Button */}
                 <div className="flex items-center justify-between border-t border-navy-light/10 pt-6">
                   <button
+                    onClick={handleToggleComplete}
                     className={`rounded-full px-6 py-3 text-sm font-semibold transition-colors ${
-                      selectedLesson.completed
-                        ? "bg-green-600 text-white"
+                      completedSet.has(selectedLesson.id)
+                        ? "bg-green-600 text-white hover:bg-green-700"
                         : "bg-primary text-white hover:bg-primary-dark"
                     }`}
                   >
-                    {selectedLesson.completed ? "✓ Concluído" : "Marcar como Concluído"}
+                    {completedSet.has(selectedLesson.id) ? "✓ Concluído" : "Marcar como Concluído"}
                   </button>
                   <div className="flex gap-2">
-                    <button className="rounded-full border-2 border-navy-light/20 px-6 py-3 text-sm font-semibold text-navy transition-colors hover:border-primary hover:text-primary">
+                    <button
+                      onClick={() => prevLesson && handleNavigate(prevLesson)}
+                      disabled={!prevLesson}
+                      className="rounded-full border-2 border-navy-light/20 px-6 py-3 text-sm font-semibold text-navy transition-colors hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
                       Aula Anterior
                     </button>
-                    <button className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-dark">
+                    <button
+                      onClick={() => nextLesson && handleNavigate(nextLesson)}
+                      disabled={!nextLesson}
+                      className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-dark disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
                       Próxima Aula
                     </button>
                   </div>
