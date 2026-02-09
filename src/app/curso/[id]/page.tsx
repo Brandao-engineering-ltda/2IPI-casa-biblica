@@ -3,27 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { getUserData } from "@/lib/storage";
-
-type Status = "em-andamento" | "proximo" | "em-breve";
-
-interface Course {
-  id: string;
-  titulo: string;
-  descricao: string;
-  descricaoCompleta: string;
-  duracao: string;
-  nivel: string;
-  dataInicio: string;
-  dataFim: string;
-  status: Status;
-  imagem: string;
-  professor: string;
-  objetivos: string[];
-  conteudoProgramatico: string[];
-  requisitos: string[];
-  cargaHoraria: string;
-  formato: string;
-}
+import { cursos } from "./CoursePageClient";
 
 export default function CoursePage() {
   const params = useParams();
