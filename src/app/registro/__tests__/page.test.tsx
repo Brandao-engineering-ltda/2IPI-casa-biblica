@@ -56,15 +56,19 @@ describe('RegistroPage', () => {
   });
 
   describe('Form Validation', () => {
+    // Submit button is disabled until terms are accepted; accept terms first so validation can run
+    const acceptTerms = (): void => {
+      const termsCheckbox = screen.getByRole('checkbox');
+      fireEvent.click(termsCheckbox);
+    };
+
     it('should show error when nome completo is empty', async () => {
       render(<RegistroPage />);
 
       const nomeInput = screen.getByLabelText(/nome completo/i);
-      const submitButton = screen.getByRole('button', { name: /criar conta/i });
-
-      // Clear pre-filled mock data
+      acceptTerms();
       fireEvent.change(nomeInput, { target: { value: '' } });
-      fireEvent.click(submitButton);
+      fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/nome completo é obrigatório/i)).toBeInTheDocument();
@@ -76,11 +80,10 @@ describe('RegistroPage', () => {
       render(<RegistroPage />);
 
       const emailInput = screen.getByLabelText(/e-mail/i);
-      const submitButton = screen.getByRole('button', { name: /criar conta/i });
-
+      acceptTerms();
       await user.clear(emailInput);
       await user.type(emailInput, 'notanemail');
-      await user.click(submitButton);
+      await user.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/e-mail inválido/i)).toBeInTheDocument();
@@ -91,10 +94,9 @@ describe('RegistroPage', () => {
       render(<RegistroPage />);
 
       const passwordInput = screen.getByLabelText(/^senha/i);
-      const submitButton = screen.getByRole('button', { name: /criar conta/i });
-
+      acceptTerms();
       fireEvent.change(passwordInput, { target: { value: '123' } });
-      fireEvent.click(submitButton);
+      fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/a senha deve ter no mínimo 6 caracteres/i)).toBeInTheDocument();
@@ -106,11 +108,10 @@ describe('RegistroPage', () => {
 
       const passwordInput = screen.getByLabelText(/^senha/i);
       const confirmPasswordInput = screen.getByLabelText(/confirmar senha/i);
-      const submitButton = screen.getByRole('button', { name: /criar conta/i });
-
+      acceptTerms();
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
       fireEvent.change(confirmPasswordInput, { target: { value: 'different123' } });
-      fireEvent.click(submitButton);
+      fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/as senhas não coincidem/i)).toBeInTheDocument();
@@ -120,13 +121,9 @@ describe('RegistroPage', () => {
     it('should show error when terms are not accepted', () => {
       render(<RegistroPage />);
 
-      const termsCheckbox = screen.getByRole('checkbox');
       const submitButton = screen.getByRole('button', { name: /criar conta/i });
 
-      // Uncheck terms (it's pre-checked by default) - button becomes disabled
-      fireEvent.click(termsCheckbox);
-
-      // Submit is disabled when terms not accepted - user cannot proceed
+      // Submit is disabled when terms not accepted (acceptedTerms initial state is false)
       expect(submitButton).toBeDisabled();
     });
 
@@ -136,13 +133,11 @@ describe('RegistroPage', () => {
       const nomeInput = screen.getByLabelText(/nome completo/i);
       const emailInput = screen.getByLabelText(/e-mail/i);
       const telefoneInput = screen.getByLabelText(/telefone/i);
-      const submitButton = screen.getByRole('button', { name: /criar conta/i });
-
-      // Clear all required fields
+      acceptTerms();
       fireEvent.change(nomeInput, { target: { value: '' } });
       fireEvent.change(emailInput, { target: { value: '' } });
       fireEvent.change(telefoneInput, { target: { value: '' } });
-      fireEvent.click(submitButton);
+      fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/nome completo é obrigatório/i)).toBeInTheDocument();
@@ -181,9 +176,11 @@ describe('RegistroPage', () => {
     it('should enable submit button when terms are accepted', () => {
       render(<RegistroPage />);
 
+      const termsCheckbox = screen.getByRole('checkbox');
       const submitButton = screen.getByRole('button', { name: /criar conta/i }) as HTMLButtonElement;
-      
-      // With mock data, terms are pre-checked so button should be enabled
+
+      expect(submitButton).toBeDisabled();
+      fireEvent.click(termsCheckbox);
       expect(submitButton).not.toBeDisabled();
     });
 
@@ -193,9 +190,10 @@ describe('RegistroPage', () => {
       const termsCheckbox = screen.getByRole('checkbox');
       const submitButton = screen.getByRole('button', { name: /criar conta/i }) as HTMLButtonElement;
 
-      // Uncheck terms
+      // Check terms first, then uncheck – button becomes disabled
       fireEvent.click(termsCheckbox);
-
+      expect(submitButton).not.toBeDisabled();
+      fireEvent.click(termsCheckbox);
       expect(submitButton).toBeDisabled();
     });
 
@@ -205,11 +203,13 @@ describe('RegistroPage', () => {
       const termsCheckbox = screen.getByRole('checkbox');
       const submitButton = screen.getByRole('button', { name: /criar conta/i });
 
-      // Uncheck terms - button becomes disabled
+      // Check terms – button becomes enabled
+      fireEvent.click(termsCheckbox);
+      expect(submitButton).not.toBeDisabled();
+      // Uncheck – button becomes disabled
       fireEvent.click(termsCheckbox);
       expect(submitButton).toBeDisabled();
-
-      // Check terms again - button becomes enabled
+      // Check again – button becomes enabled
       fireEvent.click(termsCheckbox);
       expect(submitButton).not.toBeDisabled();
     });
@@ -222,9 +222,8 @@ describe('RegistroPage', () => {
       
       render(<RegistroPage />);
 
-      const submitButton = screen.getByRole('button', { name: /criar conta/i });
-
-      fireEvent.click(submitButton);
+      fireEvent.click(screen.getByRole('checkbox'));
+      fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
         expect(saveUserData).toHaveBeenCalled();
@@ -235,11 +234,9 @@ describe('RegistroPage', () => {
     it('should disable submit button during submission', async () => {
       render(<RegistroPage />);
 
-      const submitButton = screen.getByRole('button', { name: /criar conta/i }) as HTMLButtonElement;
+      fireEvent.click(screen.getByRole('checkbox'));
+      fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
-      fireEvent.click(submitButton);
-
-      // Button should show loading state
       await waitFor(() => {
         expect(screen.getByText(/enviando.../i)).toBeInTheDocument();
       });
@@ -251,9 +248,8 @@ describe('RegistroPage', () => {
       
       render(<RegistroPage />);
 
-      const submitButton = screen.getByRole('button', { name: /criar conta/i });
-
-      fireEvent.click(submitButton);
+      fireEvent.click(screen.getByRole('checkbox'));
+      fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
         expect(saveUserData).toHaveBeenCalled();
@@ -269,17 +265,14 @@ describe('RegistroPage', () => {
       render(<RegistroPage />);
 
       const nomeInput = screen.getByLabelText(/nome completo/i);
-      const submitButton = screen.getByRole('button', { name: /criar conta/i });
-
-      // Clear and submit to get error
+      fireEvent.click(screen.getByRole('checkbox'));
       fireEvent.change(nomeInput, { target: { value: '' } });
-      fireEvent.click(submitButton);
+      fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/nome completo é obrigatório/i)).toBeInTheDocument();
       });
 
-      // Start typing
       fireEvent.change(nomeInput, { target: { value: 'João' } });
 
       await waitFor(() => {

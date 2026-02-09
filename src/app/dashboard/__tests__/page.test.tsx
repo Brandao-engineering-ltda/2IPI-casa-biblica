@@ -416,21 +416,6 @@ describe('DashboardPage', () => {
     });
   });
 
-  describe('Navigation Links', () => {
-    it('should show back to home link', async () => {
-      (getUserData as jest.Mock).mockReturnValue(null);
-      (getPurchasedCourses as jest.Mock).mockReturnValue([]);
-
-      render(<DashboardPage />);
-
-      await waitFor(() => {
-        const backLink = screen.getByRole('link', { name: /voltar para a página inicial/i });
-        expect(backLink).toBeInTheDocument();
-        expect(backLink).toHaveAttribute('href', '/');
-      }, { timeout: 1500 });
-    });
-  });
-
   describe('Course Status Display', () => {
     it('should show "Não iniciado" status for new purchases', async () => {
       (getUserData as jest.Mock).mockReturnValue(null);

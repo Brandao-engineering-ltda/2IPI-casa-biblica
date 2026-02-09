@@ -1,5 +1,4 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { act } from 'react';
 import CoursePage from '@/app/curso/[id]/page';
 import { useParams, useRouter } from 'next/navigation';
 

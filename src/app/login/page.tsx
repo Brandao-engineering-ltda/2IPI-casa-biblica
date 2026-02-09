@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { saveUserData } from "@/lib/storage";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,28 @@ export default function LoginPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // Save mock user data for demo purposes
+    // In a real app, this would validate credentials against a backend
+    const mockUserData = {
+      nomeCompleto: "Usuário Demo",
+      email: email || "demo@email.com",
+      telefone: "(11) 99999-9999",
+      dataNascimento: "1990-01-01",
+      sexo: "masculino",
+      estadoCivil: "solteiro",
+      escolaridade: "superior-completo",
+      profissao: "Estudante",
+      endereco: "Rua Demo, 123",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01234-567",
+      denominacao: "Igreja Evangélica",
+      comoConheceu: "Demo",
+      observacoes: "Usuário de demonstração"
+    };
+
+    saveUserData(mockUserData);
     router.push("/dashboard");
   }
 
