@@ -2,12 +2,10 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useRouter } from 'next/navigation';
 import DashboardPage from '@/app/dashboard/page';
-import { 
-  saveUserData, 
-  savePurchasedCourse, 
-  getUserData, 
+import {
+  savePurchasedCourse,
   getPurchasedCourses,
-  clearUserData 
+  clearLocalData
 } from '@/lib/storage';
 
 // Mock Next.js navigation
@@ -16,16 +14,35 @@ jest.mock('next/navigation', () => ({
   useParams: jest.fn(),
 }));
 
-// Use actual storage implementation
+// Mock Firebase
+jest.mock('@/lib/firebase', () => ({
+  auth: {},
+  signOut: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock AuthContext
+const mockUseAuth = jest.fn();
+jest.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+// Use actual storage implementation for course/lesson functions
 jest.unmock('@/lib/storage');
 
 describe('Complete User Flow Integration Tests', () => {
   const mockPush = jest.fn();
 
   beforeEach(() => {
-    jest.useFakeTimers();
-    // Clear all data before each test
-    clearUserData();
+    // Clear all local data before each test
+    clearLocalData();
+
+    // Default: no user logged in
+    mockUseAuth.mockReturnValue({
+      user: null,
+      userProfile: null,
+      loading: false,
+      refreshProfile: jest.fn(),
+    });
 
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
@@ -34,13 +51,9 @@ describe('Complete User Flow Integration Tests', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
   describe('End-to-End User Journey', () => {
     it('should complete full registration → purchase → dashboard → content page flow', async () => {
-      // STEP 1: User Registration
+      // STEP 1: User Registration (simulated via auth mock)
       // -------------------------
       const userData = {
         nomeCompleto: "João Silva Santos",
@@ -60,12 +73,18 @@ describe('Complete User Flow Integration Tests', () => {
         observacoes: "Interesse em teologia"
       };
 
-      saveUserData(userData);
+      // Simulate logged-in user with profile
+      mockUseAuth.mockReturnValue({
+        user: { uid: 'test-uid-1', displayName: 'João Silva Santos' },
+        userProfile: userData,
+        loading: false,
+        refreshProfile: jest.fn(),
+      });
 
-      // Verify user data is saved
-      const savedUser = getUserData();
-      expect(savedUser).toEqual(userData);
-      expect(savedUser?.nomeCompleto).toBe("João Silva Santos");
+      // Verify user data via auth mock
+      const authValue = mockUseAuth();
+      expect(authValue.userProfile).toEqual(userData);
+      expect(authValue.userProfile?.nomeCompleto).toBe("João Silva Santos");
 
       // STEP 2: Course Purchase
       // -------------------------
@@ -89,12 +108,7 @@ describe('Complete User Flow Integration Tests', () => {
       // -------------------------
       render(<DashboardPage />);
 
-      // Advance past loading delay
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      // Wait for dashboard to load
+      // Wait for dashboard to load (no timer needed - loads based on authLoading)
       await waitFor(() => {
         expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
       }, { timeout: 1500 });
@@ -122,30 +136,35 @@ describe('Complete User Flow Integration Tests', () => {
       // STEP 4: Verify course links to content page
       // --------------------------------------------
       const courseLinks = screen.getAllByRole('link');
-      const contentLink = courseLinks.find(link => 
+      const contentLink = courseLinks.find(link =>
         link.getAttribute('href')?.includes('/curso/fundamentos-da-fe/conteudo')
       );
       expect(contentLink).toBeInTheDocument();
     });
 
     it('should handle multiple course purchases', async () => {
-      // Setup user
-      saveUserData({
-        nomeCompleto: "Maria Silva",
-        email: "maria@email.com",
-        telefone: "(11) 98765-4321",
-        dataNascimento: "1990-05-15",
-        sexo: "feminino",
-        estadoCivil: "solteiro",
-        escolaridade: "superior-completo",
-        profissao: "Engenheira",
-        endereco: "Rua A, 123",
-        cidade: "São Paulo",
-        estado: "SP",
-        cep: "01234-567",
-        denominacao: "Igreja Metodista",
-        comoConheceu: "Google",
-        observacoes: ""
+      // Setup user via auth mock
+      mockUseAuth.mockReturnValue({
+        user: { uid: 'test-uid-2', displayName: 'Maria Silva' },
+        userProfile: {
+          nomeCompleto: "Maria Silva",
+          email: "maria@email.com",
+          telefone: "(11) 98765-4321",
+          dataNascimento: "1990-05-15",
+          sexo: "feminino",
+          estadoCivil: "solteiro",
+          escolaridade: "superior-completo",
+          profissao: "Engenheira",
+          endereco: "Rua A, 123",
+          cidade: "São Paulo",
+          estado: "SP",
+          cep: "01234-567",
+          denominacao: "Igreja Metodista",
+          comoConheceu: "Google",
+          observacoes: ""
+        },
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       // Purchase first course
@@ -173,10 +192,6 @@ describe('Complete User Flow Integration Tests', () => {
       // Render dashboard
       render(<DashboardPage />);
 
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
       await waitFor(() => {
         expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
       }, { timeout: 1500 });
@@ -195,12 +210,8 @@ describe('Complete User Flow Integration Tests', () => {
     });
 
     it('should show empty dashboard for new user', async () => {
-      // No user data, no purchases
+      // No user profile, no purchases (default mock already has no user)
       render(<DashboardPage />);
-
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
 
       await waitFor(() => {
         expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
@@ -216,7 +227,7 @@ describe('Complete User Flow Integration Tests', () => {
     });
 
     it('should persist data across page reloads', async () => {
-      // Save user and purchase
+      // Save user via auth mock and purchase via localStorage
       const userData = {
         nomeCompleto: "Pedro Costa",
         email: "pedro@email.com",
@@ -235,7 +246,13 @@ describe('Complete User Flow Integration Tests', () => {
         observacoes: "Quero me aprofundar"
       };
 
-      saveUserData(userData);
+      mockUseAuth.mockReturnValue({
+        user: { uid: 'test-uid-3', displayName: 'Pedro Costa' },
+        userProfile: userData,
+        loading: false,
+        refreshProfile: jest.fn(),
+      });
+
       savePurchasedCourse({
         courseId: "hermeneutica-biblica",
         purchaseDate: new Date().toISOString(),
@@ -251,10 +268,6 @@ describe('Complete User Flow Integration Tests', () => {
       // Re-render dashboard (simulating page reload)
       render(<DashboardPage />);
 
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
       await waitFor(() => {
         expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
       }, { timeout: 1500 });
@@ -266,22 +279,27 @@ describe('Complete User Flow Integration Tests', () => {
 
     it('should clear all data on logout', async () => {
       // Setup user and purchases
-      saveUserData({
-        nomeCompleto: "Ana Souza",
-        email: "ana@email.com",
-        telefone: "(11) 98765-4321",
-        dataNascimento: "1992-07-15",
-        sexo: "feminino",
-        estadoCivil: "solteiro",
-        escolaridade: "superior-completo",
-        profissao: "Professora",
-        endereco: "Rua C, 789",
-        cidade: "Belo Horizonte",
-        estado: "MG",
-        cep: "30000-000",
-        denominacao: "Igreja Batista",
-        comoConheceu: "Facebook",
-        observacoes: ""
+      mockUseAuth.mockReturnValue({
+        user: { uid: 'test-uid-4', displayName: 'Ana Souza' },
+        userProfile: {
+          nomeCompleto: "Ana Souza",
+          email: "ana@email.com",
+          telefone: "(11) 98765-4321",
+          dataNascimento: "1992-07-15",
+          sexo: "feminino",
+          estadoCivil: "solteiro",
+          escolaridade: "superior-completo",
+          profissao: "Professora",
+          endereco: "Rua C, 789",
+          cidade: "Belo Horizonte",
+          estado: "MG",
+          cep: "30000-000",
+          denominacao: "Igreja Batista",
+          comoConheceu: "Facebook",
+          observacoes: ""
+        },
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       savePurchasedCourse({
@@ -293,22 +311,24 @@ describe('Complete User Flow Integration Tests', () => {
       });
 
       // Verify data exists
-      expect(getUserData()).not.toBeNull();
+      expect(mockUseAuth().userProfile).not.toBeNull();
       expect(getPurchasedCourses()).toHaveLength(1);
 
-      // Simulate logout
-      clearUserData();
+      // Simulate logout: clear local data + reset auth mock
+      clearLocalData();
+      mockUseAuth.mockReturnValue({
+        user: null,
+        userProfile: null,
+        loading: false,
+        refreshProfile: jest.fn(),
+      });
 
       // Verify data is cleared
-      expect(getUserData()).toBeNull();
+      expect(mockUseAuth().userProfile).toBeNull();
       expect(getPurchasedCourses()).toEqual([]);
 
       // Render dashboard after logout
       render(<DashboardPage />);
-
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
 
       await waitFor(() => {
         expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
@@ -324,29 +344,30 @@ describe('Complete User Flow Integration Tests', () => {
 
   describe('Data Validation and Edge Cases', () => {
     it('should handle user with special characters in name', async () => {
-      saveUserData({
-        nomeCompleto: "José D'Angelo Müller",
-        email: "jose@email.com",
-        telefone: "(11) 98765-4321",
-        dataNascimento: "1988-12-01",
-        sexo: "masculino",
-        estadoCivil: "casado",
-        escolaridade: "mestrado",
-        profissao: "Teólogo",
-        endereco: "Rua São José, 123",
-        cidade: "São Paulo",
-        estado: "SP",
-        cep: "01234-567",
-        denominacao: "Igreja Luterana",
-        comoConheceu: "Seminário",
-        observacoes: ""
+      mockUseAuth.mockReturnValue({
+        user: { uid: 'test-uid-5', displayName: "José D'Angelo Müller" },
+        userProfile: {
+          nomeCompleto: "José D'Angelo Müller",
+          email: "jose@email.com",
+          telefone: "(11) 98765-4321",
+          dataNascimento: "1988-12-01",
+          sexo: "masculino",
+          estadoCivil: "casado",
+          escolaridade: "mestrado",
+          profissao: "Teólogo",
+          endereco: "Rua São José, 123",
+          cidade: "São Paulo",
+          estado: "SP",
+          cep: "01234-567",
+          denominacao: "Igreja Luterana",
+          comoConheceu: "Seminário",
+          observacoes: ""
+        },
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       render(<DashboardPage />);
-
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
 
       await waitFor(() => {
         expect(screen.getByText(/olá, josé!/i)).toBeInTheDocument();
@@ -354,22 +375,27 @@ describe('Complete User Flow Integration Tests', () => {
     });
 
     it('should handle purchase with multiple quantities in amount', async () => {
-      saveUserData({
-        nomeCompleto: "Carlos Lima",
-        email: "carlos@email.com",
-        telefone: "(11) 98765-4321",
-        dataNascimento: "1990-05-15",
-        sexo: "masculino",
-        estadoCivil: "solteiro",
-        escolaridade: "superior-completo",
-        profissao: "Empresário",
-        endereco: "Rua D, 999",
-        cidade: "Curitiba",
-        estado: "PR",
-        cep: "80000-000",
-        denominacao: "Igreja Assembleia",
-        comoConheceu: "YouTube",
-        observacoes: ""
+      mockUseAuth.mockReturnValue({
+        user: { uid: 'test-uid-6', displayName: 'Carlos Lima' },
+        userProfile: {
+          nomeCompleto: "Carlos Lima",
+          email: "carlos@email.com",
+          telefone: "(11) 98765-4321",
+          dataNascimento: "1990-05-15",
+          sexo: "masculino",
+          estadoCivil: "solteiro",
+          escolaridade: "superior-completo",
+          profissao: "Empresário",
+          endereco: "Rua D, 999",
+          cidade: "Curitiba",
+          estado: "PR",
+          cep: "80000-000",
+          denominacao: "Igreja Assembleia",
+          comoConheceu: "YouTube",
+          observacoes: ""
+        },
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       // Purchase for multiple people (quantity 3)
@@ -386,22 +412,27 @@ describe('Complete User Flow Integration Tests', () => {
     });
 
     it('should maintain purchase order chronologically', async () => {
-      saveUserData({
-        nomeCompleto: "Fernanda Oliveira",
-        email: "fernanda@email.com",
-        telefone: "(11) 98765-4321",
-        dataNascimento: "1995-09-10",
-        sexo: "feminino",
-        estadoCivil: "solteiro",
-        escolaridade: "superior-incompleto",
-        profissao: "Estudante",
-        endereco: "Rua E, 321",
-        cidade: "Brasília",
-        estado: "DF",
-        cep: "70000-000",
-        denominacao: "Igreja Católica",
-        comoConheceu: "Instagram",
-        observacoes: ""
+      mockUseAuth.mockReturnValue({
+        user: { uid: 'test-uid-7', displayName: 'Fernanda Oliveira' },
+        userProfile: {
+          nomeCompleto: "Fernanda Oliveira",
+          email: "fernanda@email.com",
+          telefone: "(11) 98765-4321",
+          dataNascimento: "1995-09-10",
+          sexo: "feminino",
+          estadoCivil: "solteiro",
+          escolaridade: "superior-incompleto",
+          profissao: "Estudante",
+          endereco: "Rua E, 321",
+          cidade: "Brasília",
+          estado: "DF",
+          cep: "70000-000",
+          denominacao: "Igreja Católica",
+          comoConheceu: "Instagram",
+          observacoes: ""
+        },
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       // Purchase courses in order
@@ -440,22 +471,27 @@ describe('Complete User Flow Integration Tests', () => {
   describe('Course Content Access Control', () => {
     it('should allow access to content page only after purchase', () => {
       // Setup user without purchase
-      saveUserData({
-        nomeCompleto: "Maria Silva",
-        email: "maria@email.com",
-        telefone: "(11) 98765-4321",
-        dataNascimento: "1990-05-15",
-        sexo: "feminino",
-        estadoCivil: "solteiro",
-        escolaridade: "superior-completo",
-        profissao: "Engenheira",
-        endereco: "Rua A, 123",
-        cidade: "São Paulo",
-        estado: "SP",
-        cep: "01234-567",
-        denominacao: "Igreja Metodista",
-        comoConheceu: "Google",
-        observacoes: ""
+      mockUseAuth.mockReturnValue({
+        user: { uid: 'test-uid-8', displayName: 'Maria Silva' },
+        userProfile: {
+          nomeCompleto: "Maria Silva",
+          email: "maria@email.com",
+          telefone: "(11) 98765-4321",
+          dataNascimento: "1990-05-15",
+          sexo: "feminino",
+          estadoCivil: "solteiro",
+          escolaridade: "superior-completo",
+          profissao: "Engenheira",
+          endereco: "Rua A, 123",
+          cidade: "São Paulo",
+          estado: "SP",
+          cep: "01234-567",
+          denominacao: "Igreja Metodista",
+          comoConheceu: "Google",
+          observacoes: ""
+        },
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       // Try to access without purchase
@@ -477,22 +513,27 @@ describe('Complete User Flow Integration Tests', () => {
     });
 
     it('should track different courses separately', () => {
-      saveUserData({
-        nomeCompleto: "Carlos Lima",
-        email: "carlos@email.com",
-        telefone: "(11) 98765-4321",
-        dataNascimento: "1990-05-15",
-        sexo: "masculino",
-        estadoCivil: "solteiro",
-        escolaridade: "superior-completo",
-        profissao: "Pastor",
-        endereco: "Rua B, 456",
-        cidade: "Rio de Janeiro",
-        estado: "RJ",
-        cep: "20000-000",
-        denominacao: "Igreja Batista",
-        comoConheceu: "Indicação",
-        observacoes: ""
+      mockUseAuth.mockReturnValue({
+        user: { uid: 'test-uid-9', displayName: 'Carlos Lima' },
+        userProfile: {
+          nomeCompleto: "Carlos Lima",
+          email: "carlos@email.com",
+          telefone: "(11) 98765-4321",
+          dataNascimento: "1990-05-15",
+          sexo: "masculino",
+          estadoCivil: "solteiro",
+          escolaridade: "superior-completo",
+          profissao: "Pastor",
+          endereco: "Rua B, 456",
+          cidade: "Rio de Janeiro",
+          estado: "RJ",
+          cep: "20000-000",
+          denominacao: "Igreja Batista",
+          comoConheceu: "Indicação",
+          observacoes: ""
+        },
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       // Purchase first course
@@ -514,11 +555,11 @@ describe('Complete User Flow Integration Tests', () => {
       });
 
       const purchases = getPurchasedCourses();
-      
+
       // Verify both courses are accessible
       expect(purchases.find(p => p.courseId === "fundamentos-da-fe")).toBeDefined();
       expect(purchases.find(p => p.courseId === "teologia-sistematica")).toBeDefined();
-      
+
       // Verify third course is not accessible
       expect(purchases.find(p => p.courseId === "hermeneutica-biblica")).toBeUndefined();
     });

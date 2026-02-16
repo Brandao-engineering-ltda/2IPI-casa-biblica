@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useRouter, useParams } from 'next/navigation';
 import CoursePage from '../page';
-import { getUserData } from '@/lib/storage';
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
@@ -10,9 +9,16 @@ jest.mock('next/navigation', () => ({
   useParams: jest.fn(),
 }));
 
-// Mock storage utility
-jest.mock('@/lib/storage', () => ({
-  getUserData: jest.fn(),
+// Mock firebase (required by AuthContext)
+jest.mock('@/lib/firebase', () => ({
+  auth: {},
+  signOut: jest.fn(),
+}));
+
+// Mock AuthContext
+const mockUseAuth = jest.fn();
+jest.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => mockUseAuth(),
 }));
 
 describe('CoursePage - Back Button Navigation', () => {
@@ -33,9 +39,11 @@ describe('CoursePage - Back Button Navigation', () => {
   describe('Voltar Button Behavior', () => {
     it('should redirect to dashboard when user is logged in', () => {
       // Mock user is logged in
-      (getUserData as jest.Mock).mockReturnValue({
-        nomeCompleto: "João Silva",
-        email: "joao@email.com",
+      mockUseAuth.mockReturnValue({
+        user: { uid: '123', displayName: 'João Silva' },
+        userProfile: null,
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       render(<CoursePage />);
@@ -49,7 +57,12 @@ describe('CoursePage - Back Button Navigation', () => {
 
     it('should go back in history when user is not logged in', () => {
       // Mock user is not logged in
-      (getUserData as jest.Mock).mockReturnValue(null);
+      mockUseAuth.mockReturnValue({
+        user: null,
+        userProfile: null,
+        loading: false,
+        refreshProfile: jest.fn(),
+      });
 
       render(<CoursePage />);
 
@@ -64,9 +77,11 @@ describe('CoursePage - Back Button Navigation', () => {
       (useParams as jest.Mock).mockReturnValue({
         id: 'invalid-course-id',
       });
-      (getUserData as jest.Mock).mockReturnValue({
-        nomeCompleto: "João Silva",
-        email: "joao@email.com",
+      mockUseAuth.mockReturnValue({
+        user: { uid: '123', displayName: 'João Silva' },
+        userProfile: null,
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       render(<CoursePage />);
@@ -84,7 +99,12 @@ describe('CoursePage - Back Button Navigation', () => {
       (useParams as jest.Mock).mockReturnValue({
         id: 'invalid-course-id',
       });
-      (getUserData as jest.Mock).mockReturnValue(null);
+      mockUseAuth.mockReturnValue({
+        user: null,
+        userProfile: null,
+        loading: false,
+        refreshProfile: jest.fn(),
+      });
 
       render(<CoursePage />);
 
@@ -101,9 +121,11 @@ describe('CoursePage - Back Button Navigation', () => {
   describe('Bug Fix Verification', () => {
     it('should handle navigation from payment page → back → course page → back correctly', () => {
       // Simulate user logged in and came from payment page
-      (getUserData as jest.Mock).mockReturnValue({
-        nomeCompleto: "João Silva",
-        email: "joao@email.com",
+      mockUseAuth.mockReturnValue({
+        user: { uid: '123', displayName: 'João Silva' },
+        userProfile: null,
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       render(<CoursePage />);
@@ -119,7 +141,12 @@ describe('CoursePage - Back Button Navigation', () => {
 
     it('should allow guest users to navigate back normally', () => {
       // Guest user (not logged in)
-      (getUserData as jest.Mock).mockReturnValue(null);
+      mockUseAuth.mockReturnValue({
+        user: null,
+        userProfile: null,
+        loading: false,
+        refreshProfile: jest.fn(),
+      });
 
       render(<CoursePage />);
 
@@ -131,37 +158,31 @@ describe('CoursePage - Back Button Navigation', () => {
       expect(mockPush).not.toHaveBeenCalled();
     });
 
-    it('should check user login status on each back click', () => {
-      (getUserData as jest.Mock).mockReturnValue({
-        nomeCompleto: "João Silva",
-        email: "joao@email.com",
+    it('should use dashboard navigation for logged-in users', () => {
+      mockUseAuth.mockReturnValue({
+        user: { uid: '123', displayName: 'João Silva' },
+        userProfile: null,
+        loading: false,
+        refreshProfile: jest.fn(),
       });
 
       render(<CoursePage />);
 
       const voltarButton = screen.getByRole('button', { name: /← voltar/i });
-      
-      // First click
       fireEvent.click(voltarButton);
-      expect(getUserData).toHaveBeenCalledTimes(1);
+
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
-
-      // Clear mocks
-      jest.clearAllMocks();
-      
-      // User logs out
-      (getUserData as jest.Mock).mockReturnValue(null);
-
-      // Second click
-      fireEvent.click(voltarButton);
-      expect(getUserData).toHaveBeenCalledTimes(1);
-      expect(mockBack).toHaveBeenCalled();
     });
   });
 
   describe('Inscrever-se Button', () => {
     it('should redirect to payment page', () => {
-      (getUserData as jest.Mock).mockReturnValue(null);
+      mockUseAuth.mockReturnValue({
+        user: null,
+        userProfile: null,
+        loading: false,
+        refreshProfile: jest.fn(),
+      });
 
       render(<CoursePage />);
 

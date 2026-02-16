@@ -8,6 +8,17 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
+// Mock Firebase
+jest.mock('@/lib/firebase', () => ({
+  auth: {},
+  signOut: jest.fn(),
+}));
+
+// Mock AuthContext
+jest.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ user: null, userProfile: null, loading: false, refreshProfile: jest.fn() }),
+}));
+
 // Mock next/image
 jest.mock('next/image', () => ({
   __esModule: true,

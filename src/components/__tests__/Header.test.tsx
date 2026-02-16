@@ -1,24 +1,35 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { usePathname } from 'next/navigation';
 import { Header } from '../Header';
-import { clearUserData, getUserData } from '@/lib/storage';
+import { clearLocalData } from '@/lib/storage';
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(),
 }));
 
+// Mock AuthContext
+const mockUseAuth = jest.fn();
+jest.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+// Mock Firebase
+jest.mock('@/lib/firebase', () => ({
+  auth: {},
+  signOut: jest.fn(() => Promise.resolve()),
+}));
+
 // Mock storage utility
 jest.mock('@/lib/storage', () => ({
-  clearUserData: jest.fn(),
-  getUserData: jest.fn(),
+  clearLocalData: jest.fn(),
 }));
 
 describe('Header Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (getUserData as jest.Mock).mockReturnValue(null); // Default: not logged in
+    mockUseAuth.mockReturnValue({ user: null, userProfile: null, loading: false, refreshProfile: jest.fn() }); // Default: not logged in
   });
 
   describe('Logo Display', () => {
@@ -42,7 +53,7 @@ describe('Header Component', () => {
 
     it('should link logo to homepage when logged out', () => {
       (usePathname as jest.Mock).mockReturnValue('/');
-      (getUserData as jest.Mock).mockReturnValue(null);
+      mockUseAuth.mockReturnValue({ user: null, userProfile: null, loading: false, refreshProfile: jest.fn() });
 
       render(<Header />);
 
@@ -52,7 +63,7 @@ describe('Header Component', () => {
 
     it('should link logo to dashboard when logged in', () => {
       (usePathname as jest.Mock).mockReturnValue('/dashboard');
-      (getUserData as jest.Mock).mockReturnValue({ nomeCompleto: 'Test User' });
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, userProfile: null, loading: false, refreshProfile: jest.fn() });
 
       render(<Header />);
 
@@ -77,7 +88,7 @@ describe('Header Component', () => {
     it('should show login button on home page', () => {
       render(<Header />);
 
-      const loginButton = screen.getByRole('link', { name: /login/i });
+      const loginButton = screen.getByRole('link', { name: /entrar/i });
       expect(loginButton).toBeInTheDocument();
       expect(loginButton).toHaveAttribute('href', '/login');
     });
@@ -85,7 +96,7 @@ describe('Header Component', () => {
     it('should not show logout button on home page', () => {
       render(<Header />);
 
-      const logoutButton = screen.queryByRole('button', { name: /logout/i });
+      const logoutButton = screen.queryByRole('button', { name: /sair/i });
       expect(logoutButton).not.toBeInTheDocument();
     });
 
@@ -114,23 +125,25 @@ describe('Header Component', () => {
     it('should show logout button on dashboard', () => {
       render(<Header />);
 
-      const logoutButton = screen.getByRole('button', { name: /logout/i });
+      const logoutButton = screen.getByRole('button', { name: /sair/i });
       expect(logoutButton).toBeInTheDocument();
     });
 
     it('should not show login button on dashboard', () => {
       render(<Header />);
 
-      expect(screen.queryByRole('link', { name: /login/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /entrar/i })).not.toBeInTheDocument();
     });
 
-    it('should clear user data on logout', () => {
+    it('should clear user data on logout', async () => {
       render(<Header />);
 
-      const logoutButton = screen.getByRole('button', { name: /logout/i });
+      const logoutButton = screen.getByRole('button', { name: /sair/i });
       fireEvent.click(logoutButton);
 
-      expect(clearUserData).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(clearLocalData).toHaveBeenCalled();
+      });
     });
   });
 
@@ -170,8 +183,8 @@ describe('Header Component', () => {
 
       render(<Header />);
 
-      expect(screen.queryByRole('link', { name: /login/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /logout/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /entrar/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /sair/i })).not.toBeInTheDocument();
     });
   });
 
@@ -191,7 +204,7 @@ describe('Header Component', () => {
       render(<Header />);
 
       const menuButton = screen.getByRole('button', { name: /abrir menu/i });
-      
+
       // Open menu
       fireEvent.click(menuButton);
 
@@ -221,9 +234,9 @@ describe('Header Component', () => {
       fireEvent.click(menuButton);
 
       const allLinks = screen.getAllByRole('link');
-      const navLinks = allLinks.filter(link => 
-        link.textContent === 'Cursos' || 
-        link.textContent === 'Sobre' || 
+      const navLinks = allLinks.filter(link =>
+        link.textContent === 'Cursos' ||
+        link.textContent === 'Sobre' ||
         link.textContent === 'Contato'
       );
       expect(navLinks.length).toBeGreaterThanOrEqual(3);
@@ -250,11 +263,11 @@ describe('Header Component', () => {
       const menuButton = screen.getByRole('button', { name: /abrir menu/i });
       fireEvent.click(menuButton);
 
-      const logoutButtons = screen.getAllByRole('button', { name: /logout/i });
+      const logoutButtons = screen.getAllByRole('button', { name: /sair/i });
       expect(logoutButtons.length).toBeGreaterThan(0);
     });
 
-    it('should close menu and clear data on mobile logout', () => {
+    it('should close menu and clear data on mobile logout', async () => {
       (usePathname as jest.Mock).mockReturnValue('/dashboard');
 
       render(<Header />);
@@ -262,10 +275,12 @@ describe('Header Component', () => {
       const menuButton = screen.getByRole('button', { name: /abrir menu/i });
       fireEvent.click(menuButton);
 
-      const logoutButtons = screen.getAllByRole('button', { name: /logout/i });
+      const logoutButtons = screen.getAllByRole('button', { name: /sair/i });
       fireEvent.click(logoutButtons[0]);
 
-      expect(clearUserData).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(clearLocalData).toHaveBeenCalled();
+      });
     });
   });
 

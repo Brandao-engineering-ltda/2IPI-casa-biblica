@@ -9,9 +9,13 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-// Mock storage utility
+jest.mock('@/lib/firebase', () => ({
+  auth: {},
+  createUserWithEmailAndPassword: jest.fn(() => Promise.resolve({ user: { uid: '123' } })),
+}));
+
 jest.mock('@/lib/storage', () => ({
-  saveUserData: jest.fn(),
+  saveUserProfile: jest.fn(() => Promise.resolve()),
 }));
 
 describe('RegistroPage', () => {
@@ -216,25 +220,34 @@ describe('RegistroPage', () => {
   });
 
   describe('Form Submission', () => {
+    function fillRequiredFields() {
+      fireEvent.change(screen.getByLabelText(/nome completo/i), { target: { value: 'João Silva' } });
+      fireEvent.change(screen.getByLabelText(/e-mail/i), { target: { value: 'joao@email.com' } });
+      fireEvent.change(screen.getByLabelText(/^senha/i), { target: { value: 'senha123' } });
+      fireEvent.change(screen.getByLabelText(/confirmar senha/i), { target: { value: 'senha123' } });
+      fireEvent.change(screen.getByLabelText(/telefone/i), { target: { value: '(11) 99999-0000' } });
+      fireEvent.change(screen.getByLabelText(/data de nascimento/i), { target: { value: '1990-01-01' } });
+      fireEvent.change(screen.getByLabelText(/^sexo/i), { target: { value: 'masculino' } });
+      fireEvent.change(screen.getByLabelText(/cidade/i), { target: { value: 'Maringá' } });
+      fireEvent.change(document.getElementById('estado')!, { target: { value: 'PR' } });
+      fireEvent.click(screen.getByRole('checkbox'));
+    }
+
     it('should redirect to dashboard on successful submission', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { saveUserData } = require('@/lib/storage');
-      
       render(<RegistroPage />);
 
-      fireEvent.click(screen.getByRole('checkbox'));
+      fillRequiredFields();
       fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
-        expect(saveUserData).toHaveBeenCalled();
         expect(mockPush).toHaveBeenCalledWith('/dashboard');
-      }, { timeout: 2000 });
+      });
     });
 
     it('should disable submit button during submission', async () => {
       render(<RegistroPage />);
 
-      fireEvent.click(screen.getByRole('checkbox'));
+      fillRequiredFields();
       fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
@@ -244,16 +257,16 @@ describe('RegistroPage', () => {
 
     it('should save user data without password fields', async () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { saveUserData } = require('@/lib/storage');
-      
+      const { saveUserProfile } = require('@/lib/storage');
+
       render(<RegistroPage />);
 
-      fireEvent.click(screen.getByRole('checkbox'));
+      fillRequiredFields();
       fireEvent.click(screen.getByRole('button', { name: /criar conta/i }));
 
       await waitFor(() => {
-        expect(saveUserData).toHaveBeenCalled();
-        const savedData = saveUserData.mock.calls[0][0];
+        expect(saveUserProfile).toHaveBeenCalled();
+        const savedData = saveUserProfile.mock.calls[0][1];
         expect(savedData).not.toHaveProperty('senha');
         expect(savedData).not.toHaveProperty('confirmarSenha');
       }, { timeout: 2000 });
@@ -303,7 +316,7 @@ describe('RegistroPage', () => {
     it('should render login link', () => {
       render(<RegistroPage />);
 
-      const loginLink = screen.getByRole('link', { name: /fazer login/i });
+      const loginLink = screen.getByRole('link', { name: /entrar/i });
       expect(loginLink).toBeInTheDocument();
       expect(loginLink).toHaveAttribute('href', '/login');
     });

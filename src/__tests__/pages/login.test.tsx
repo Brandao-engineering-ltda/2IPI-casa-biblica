@@ -7,6 +7,18 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }))
 
+jest.mock('@/lib/firebase', () => ({
+  auth: {},
+  googleProvider: {},
+  signInWithPopup: jest.fn(),
+  signInWithEmailAndPassword: jest.fn(() => Promise.resolve({ user: { uid: '123' } })),
+  sendPasswordResetEmail: jest.fn(() => Promise.resolve()),
+}))
+
+jest.mock('@/lib/storage', () => ({
+  saveUserProfile: jest.fn(() => Promise.resolve()),
+}))
+
 describe('LoginPage', () => {
   const mockPush = jest.fn()
 
@@ -36,7 +48,17 @@ describe('LoginPage', () => {
 
   it('renders submit button', () => {
     render(<LoginPage />)
-    expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^entrar$/i })).toBeInTheDocument()
+  })
+
+  it('renders Google sign-in button', () => {
+    render(<LoginPage />)
+    expect(screen.getByRole('button', { name: /entrar com google/i })).toBeInTheDocument()
+  })
+
+  it('renders "Esqueceu a senha?" link', () => {
+    render(<LoginPage />)
+    expect(screen.getByText(/esqueceu a senha/i)).toBeInTheDocument()
   })
 
   it('renders back to home link', () => {
@@ -62,10 +84,10 @@ describe('LoginPage', () => {
 
   it('navigates to dashboard on form submission', async () => {
     render(<LoginPage />)
-    
+
     const emailInput = screen.getByLabelText('E-mail')
     const passwordInput = screen.getByLabelText('Senha')
-    const submitButton = screen.getByRole('button', { name: /entrar/i })
+    const submitButton = screen.getByRole('button', { name: /^entrar$/i })
 
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
     fireEvent.change(passwordInput, { target: { value: 'password123' } })

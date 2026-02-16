@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { DashboardSkeleton } from "@/components/Skeleton";
-import { getUserData, getPurchasedCourses, getCompletedLessons } from "@/lib/storage";
+import { getPurchasedCourses, getCompletedLessons } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
 import { getTotalLessons, coursesContent } from "@/lib/courseContent";
 
 type Status = "em-andamento" | "proximo" | "em-breve";
@@ -108,6 +109,7 @@ function calculateCourseProgress(courseId: string): { progress: CourseProgress; 
 }
 
 export default function DashboardPage() {
+  const { user, userProfile, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [userCourses, setUserCourses] = useState<UserCourse[]>([]);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
@@ -115,39 +117,34 @@ export default function DashboardPage() {
   const [certificateCourse, setCertificateCourse] = useState<UserCourse | null>(null);
 
   useEffect(() => {
-    // Simulate dashboard data loading
-    const timer = setTimeout(() => {
-      // Get user data
-      const userData = getUserData();
-      if (userData) {
-        // Extract first name
-        const firstName = userData.nomeCompleto.split(" ")[0];
-        setUserName(firstName);
-      }
+    if (authLoading) return;
 
-      // Get purchased courses
-      const purchases = getPurchasedCourses();
-      const purchasedUserCourses: UserCourse[] = purchases
-        .filter((purchase) => allCourses[purchase.courseId])
-        .map((purchase) => {
-          const courseData = allCourses[purchase.courseId];
-          const { progress, percentage } = calculateCourseProgress(purchase.courseId);
-          return {
-            ...courseData,
-            progress,
-            progressPercentage: percentage,
-            enrolledAt: new Date(purchase.purchaseDate).toLocaleDateString('pt-BR'),
-            isPaid: true,
-          };
-        });
+    // Extract user name from profile or Firebase user
+    const fullName = userProfile?.nomeCompleto || user?.displayName || "";
+    if (fullName) {
+      setUserName(fullName.split(" ")[0]);
+    }
 
-      setUserCourses(purchasedUserCourses);
-      setEnrolledCourseIds(new Set(purchases.map(p => p.courseId)));
-      setIsLoading(false);
-    }, 1000);
+    // Get purchased courses from localStorage
+    const purchases = getPurchasedCourses();
+    const purchasedUserCourses: UserCourse[] = purchases
+      .filter((purchase) => allCourses[purchase.courseId])
+      .map((purchase) => {
+        const courseData = allCourses[purchase.courseId];
+        const { progress, percentage } = calculateCourseProgress(purchase.courseId);
+        return {
+          ...courseData,
+          progress,
+          progressPercentage: percentage,
+          enrolledAt: new Date(purchase.purchaseDate).toLocaleDateString('pt-BR'),
+          isPaid: true,
+        };
+      });
 
-    return () => clearTimeout(timer);
-  }, []);
+    setUserCourses(purchasedUserCourses);
+    setEnrolledCourseIds(new Set(purchases.map(p => p.courseId)));
+    setIsLoading(false);
+  }, [authLoading, user, userProfile]);
 
   if (isLoading) {
     return <DashboardSkeleton />;
