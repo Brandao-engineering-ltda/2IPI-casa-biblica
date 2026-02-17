@@ -113,7 +113,7 @@ export default function DashboardPage() {
   const [certificateCourse, setCertificateCourse] = useState<UserCourse | null>(null);
 
   // Derive user name from auth state
-  const fullName = userProfile?.nomeCompleto || user?.displayName || "";
+  const fullName = userProfile?.fullName || user?.displayName || "";
   const userName = fullName ? fullName.split(" ")[0] : "";
 
   // Derive courses from localStorage (synchronous)
