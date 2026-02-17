@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { DashboardSkeleton } from "@/components/Skeleton";
@@ -110,24 +110,18 @@ function calculateCourseProgress(courseId: string): { progress: CourseProgress; 
 
 export default function DashboardPage() {
   const { user, userProfile, loading: authLoading } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
-  const [userCourses, setUserCourses] = useState<UserCourse[]>([]);
-  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
-  const [userName, setUserName] = useState<string>("");
   const [certificateCourse, setCertificateCourse] = useState<UserCourse | null>(null);
 
-  useEffect(() => {
-    if (authLoading) return;
+  // Derive user name from auth state
+  const fullName = userProfile?.nomeCompleto || user?.displayName || "";
+  const userName = fullName ? fullName.split(" ")[0] : "";
 
-    // Extract user name from profile or Firebase user
-    const fullName = userProfile?.nomeCompleto || user?.displayName || "";
-    if (fullName) {
-      setUserName(fullName.split(" ")[0]);
-    }
+  // Derive courses from localStorage (synchronous)
+  const { userCourses, enrolledCourseIds } = useMemo(() => {
+    if (authLoading) return { userCourses: [] as UserCourse[], enrolledCourseIds: new Set<string>() };
 
-    // Get purchased courses from localStorage
     const purchases = getPurchasedCourses();
-    const purchasedUserCourses: UserCourse[] = purchases
+    const courses: UserCourse[] = purchases
       .filter((purchase) => allCourses[purchase.courseId])
       .map((purchase) => {
         const courseData = allCourses[purchase.courseId];
@@ -141,12 +135,13 @@ export default function DashboardPage() {
         };
       });
 
-    setUserCourses(purchasedUserCourses);
-    setEnrolledCourseIds(new Set(purchases.map(p => p.courseId)));
-    setIsLoading(false);
-  }, [authLoading, user, userProfile]);
+    return {
+      userCourses: courses,
+      enrolledCourseIds: new Set(purchases.map(p => p.courseId)),
+    };
+  }, [authLoading]);
 
-  if (isLoading) {
+  if (authLoading) {
     return <DashboardSkeleton />;
   }
 
