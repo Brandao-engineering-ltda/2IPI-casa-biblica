@@ -10,21 +10,21 @@ import { saveUserProfile } from "@/lib/storage";
 export default function RegistroPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    nomeCompleto: "",
+    fullName: "",
     email: "",
-    telefone: "",
-    dataNascimento: "",
-    sexo: "",
-    estadoCivil: "",
-    escolaridade: "",
-    profissao: "",
-    endereco: "",
-    cidade: "",
-    estado: "",
-    cep: "",
-    denominacao: "",
-    comoConheceu: "",
-    observacoes: "",
+    phone: "",
+    birthDate: "",
+    gender: "",
+    maritalStatus: "",
+    education: "",
+    occupation: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    denomination: "",
+    referralSource: "",
+    notes: "",
     senha: "",
     confirmarSenha: ""
   });
@@ -47,8 +47,8 @@ export default function RegistroPage() {
   function validateForm() {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.nomeCompleto.trim()) {
-      newErrors.nomeCompleto = "Nome completo é obrigatório";
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Nome completo é obrigatório";
     }
 
     if (!formData.email.trim()) {
@@ -69,24 +69,24 @@ export default function RegistroPage() {
       newErrors.confirmarSenha = "As senhas não coincidem";
     }
 
-    if (!formData.telefone.trim()) {
-      newErrors.telefone = "Telefone é obrigatório";
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Telefone é obrigatório";
     }
 
-    if (!formData.dataNascimento) {
-      newErrors.dataNascimento = "Data de nascimento é obrigatória";
+    if (!formData.birthDate) {
+      newErrors.birthDate = "Data de nascimento é obrigatória";
     }
 
-    if (!formData.sexo) {
-      newErrors.sexo = "Sexo é obrigatório";
+    if (!formData.gender) {
+      newErrors.gender = "Sexo é obrigatório";
     }
 
-    if (!formData.cidade.trim()) {
-      newErrors.cidade = "Cidade é obrigatória";
+    if (!formData.city.trim()) {
+      newErrors.city = "Cidade é obrigatória";
     }
 
-    if (!formData.estado) {
-      newErrors.estado = "Estado é obrigatório";
+    if (!formData.state) {
+      newErrors.state = "Estado é obrigatório";
     }
 
     if (!acceptedTerms) {
@@ -166,20 +166,20 @@ export default function RegistroPage() {
               <h2 className="mb-4 text-lg font-semibold text-white">Dados Pessoais</h2>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <label htmlFor="nomeCompleto" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="fullName" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Nome Completo <span className="text-red-400">*</span>
                   </label>
                   <input
-                    id="nomeCompleto"
-                    name="nomeCompleto"
+                    id="fullName"
+                    name="fullName"
                     type="text"
-                    value={formData.nomeCompleto}
+                    value={formData.fullName}
                     onChange={handleChange}
                     placeholder="Seu nome completo"
-                    className={`w-full rounded-lg border ${errors.nomeCompleto ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
+                    className={`w-full rounded-lg border ${errors.fullName ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
                   />
-                  {errors.nomeCompleto && (
-                    <p className="mt-1 text-xs text-red-400">{errors.nomeCompleto}</p>
+                  {errors.fullName && (
+                    <p className="mt-1 text-xs text-red-400">{errors.fullName}</p>
                   )}
                 </div>
 
@@ -274,68 +274,68 @@ export default function RegistroPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="telefone" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Telefone/WhatsApp <span className="text-red-400">*</span>
                   </label>
                   <input
-                    id="telefone"
-                    name="telefone"
+                    id="phone"
+                    name="phone"
                     type="tel"
-                    value={formData.telefone}
+                    value={formData.phone}
                     onChange={handleChange}
                     placeholder="(00) 00000-0000"
-                    className={`w-full rounded-lg border ${errors.telefone ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
+                    className={`w-full rounded-lg border ${errors.phone ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
                   />
-                  {errors.telefone && (
-                    <p className="mt-1 text-xs text-red-400">{errors.telefone}</p>
+                  {errors.phone && (
+                    <p className="mt-1 text-xs text-red-400">{errors.phone}</p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="dataNascimento" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="birthDate" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Data de Nascimento <span className="text-red-400">*</span>
                   </label>
                   <input
-                    id="dataNascimento"
-                    name="dataNascimento"
+                    id="birthDate"
+                    name="birthDate"
                     type="date"
-                    value={formData.dataNascimento}
+                    value={formData.birthDate}
                     onChange={handleChange}
-                    className={`w-full rounded-lg border ${errors.dataNascimento ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
+                    className={`w-full rounded-lg border ${errors.birthDate ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
                   />
-                  {errors.dataNascimento && (
-                    <p className="mt-1 text-xs text-red-400">{errors.dataNascimento}</p>
+                  {errors.birthDate && (
+                    <p className="mt-1 text-xs text-red-400">{errors.birthDate}</p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="sexo" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="gender" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Sexo <span className="text-red-400">*</span>
                   </label>
                   <select
-                    id="sexo"
-                    name="sexo"
-                    value={formData.sexo}
+                    id="gender"
+                    name="gender"
+                    value={formData.gender}
                     onChange={handleChange}
-                    className={`w-full rounded-lg border ${errors.sexo ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
+                    className={`w-full rounded-lg border ${errors.gender ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
                   >
                     <option value="">Selecione</option>
                     <option value="masculino">Masculino</option>
                     <option value="feminino">Feminino</option>
                   </select>
-                  {errors.sexo && (
-                    <p className="mt-1 text-xs text-red-400">{errors.sexo}</p>
+                  {errors.gender && (
+                    <p className="mt-1 text-xs text-red-400">{errors.gender}</p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="estadoCivil" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="maritalStatus" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Estado Civil
                   </label>
                   <select
-                    id="estadoCivil"
-                    name="estadoCivil"
-                    value={formData.estadoCivil}
+                    id="maritalStatus"
+                    name="maritalStatus"
+                    value={formData.maritalStatus}
                     onChange={handleChange}
                     className="w-full rounded-lg border border-cream-dark/20 bg-navy-dark px-4 py-3 text-sm text-cream outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                   >
@@ -354,13 +354,13 @@ export default function RegistroPage() {
               <h2 className="mb-4 text-lg font-semibold text-white">Formação Acadêmica e Profissional</h2>
               <div className="grid gap-5 md:grid-cols-2">
                 <div>
-                  <label htmlFor="escolaridade" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="education" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Escolaridade
                   </label>
                   <select
-                    id="escolaridade"
-                    name="escolaridade"
-                    value={formData.escolaridade}
+                    id="education"
+                    name="education"
+                    value={formData.education}
                     onChange={handleChange}
                     className="w-full rounded-lg border border-cream-dark/20 bg-navy-dark px-4 py-3 text-sm text-cream outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
                   >
@@ -378,14 +378,14 @@ export default function RegistroPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="profissao" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="occupation" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Profissão
                   </label>
                   <input
-                    id="profissao"
-                    name="profissao"
+                    id="occupation"
+                    name="occupation"
                     type="text"
-                    value={formData.profissao}
+                    value={formData.occupation}
                     onChange={handleChange}
                     placeholder="Sua profissão"
                     className="w-full rounded-lg border border-cream-dark/20 bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -399,14 +399,14 @@ export default function RegistroPage() {
               <h2 className="mb-4 text-lg font-semibold text-white">Endereço</h2>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <label htmlFor="endereco" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="address" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Endereço
                   </label>
                   <input
-                    id="endereco"
-                    name="endereco"
+                    id="address"
+                    name="address"
                     type="text"
-                    value={formData.endereco}
+                    value={formData.address}
                     onChange={handleChange}
                     placeholder="Rua, número, complemento"
                     className="w-full rounded-lg border border-cream-dark/20 bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -414,33 +414,33 @@ export default function RegistroPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="cidade" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="city" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Cidade <span className="text-red-400">*</span>
                   </label>
                   <input
-                    id="cidade"
-                    name="cidade"
+                    id="city"
+                    name="city"
                     type="text"
-                    value={formData.cidade}
+                    value={formData.city}
                     onChange={handleChange}
                     placeholder="Sua cidade"
-                    className={`w-full rounded-lg border ${errors.cidade ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
+                    className={`w-full rounded-lg border ${errors.city ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
                   />
-                  {errors.cidade && (
-                    <p className="mt-1 text-xs text-red-400">{errors.cidade}</p>
+                  {errors.city && (
+                    <p className="mt-1 text-xs text-red-400">{errors.city}</p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="estado" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="state" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Estado <span className="text-red-400">*</span>
                   </label>
                   <select
-                    id="estado"
-                    name="estado"
-                    value={formData.estado}
+                    id="state"
+                    name="state"
+                    value={formData.state}
                     onChange={handleChange}
-                    className={`w-full rounded-lg border ${errors.estado ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
+                    className={`w-full rounded-lg border ${errors.state ? 'border-red-400' : 'border-cream-dark/20'} bg-navy-dark px-4 py-3 text-sm text-cream outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary`}
                   >
                     <option value="">Selecione</option>
                     <option value="AC">Acre</option>
@@ -471,20 +471,20 @@ export default function RegistroPage() {
                     <option value="SE">Sergipe</option>
                     <option value="TO">Tocantins</option>
                   </select>
-                  {errors.estado && (
-                    <p className="mt-1 text-xs text-red-400">{errors.estado}</p>
+                  {errors.state && (
+                    <p className="mt-1 text-xs text-red-400">{errors.state}</p>
                   )}
                 </div>
 
                 <div className="md:col-span-2">
-                  <label htmlFor="cep" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="zipCode" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     CEP
                   </label>
                   <input
-                    id="cep"
-                    name="cep"
+                    id="zipCode"
+                    name="zipCode"
                     type="text"
-                    value={formData.cep}
+                    value={formData.zipCode}
                     onChange={handleChange}
                     placeholder="00000-000"
                     className="w-full rounded-lg border border-cream-dark/20 bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -498,14 +498,14 @@ export default function RegistroPage() {
               <h2 className="mb-4 text-lg font-semibold text-white">Informações Adicionais</h2>
               <div className="grid gap-5">
                 <div>
-                  <label htmlFor="denominacao" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="denomination" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Denominação Religiosa
                   </label>
                   <input
-                    id="denominacao"
-                    name="denominacao"
+                    id="denomination"
+                    name="denomination"
                     type="text"
-                    value={formData.denominacao}
+                    value={formData.denomination}
                     onChange={handleChange}
                     placeholder="Sua denominação (se houver)"
                     className="w-full rounded-lg border border-cream-dark/20 bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -513,14 +513,14 @@ export default function RegistroPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="comoConheceu" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="referralSource" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Como conheceu o Instituto Casa Bíblica?
                   </label>
                   <input
-                    id="comoConheceu"
-                    name="comoConheceu"
+                    id="referralSource"
+                    name="referralSource"
                     type="text"
-                    value={formData.comoConheceu}
+                    value={formData.referralSource}
                     onChange={handleChange}
                     placeholder="Ex: Redes sociais, indicação, site, etc."
                     className="w-full rounded-lg border border-cream-dark/20 bg-navy-dark px-4 py-3 text-sm text-cream placeholder:text-cream-dark/50 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -528,13 +528,13 @@ export default function RegistroPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="observacoes" className="mb-1.5 block text-sm font-medium text-cream-dark">
+                  <label htmlFor="notes" className="mb-1.5 block text-sm font-medium text-cream-dark">
                     Observações
                   </label>
                   <textarea
-                    id="observacoes"
-                    name="observacoes"
-                    value={formData.observacoes}
+                    id="notes"
+                    name="notes"
+                    value={formData.notes}
                     onChange={handleChange}
                     placeholder="Algo mais que gostaria de compartilhar?"
                     rows={4}
