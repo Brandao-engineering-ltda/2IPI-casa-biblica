@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { DashboardSkeleton } from "@/components/Skeleton";
-import { getUserData, getPurchasedCourses, getCompletedLessons } from "@/lib/storage";
+import { getPurchasedCourses, getCompletedLessons } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
 import { getTotalLessons, coursesContent } from "@/lib/courseContent";
 
 type Status = "em-andamento" | "proximo" | "em-breve";
@@ -108,48 +109,39 @@ function calculateCourseProgress(courseId: string): { progress: CourseProgress; 
 }
 
 export default function DashboardPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [userCourses, setUserCourses] = useState<UserCourse[]>([]);
-  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
-  const [userName, setUserName] = useState<string>("");
+  const { user, userProfile, loading: authLoading } = useAuth();
   const [certificateCourse, setCertificateCourse] = useState<UserCourse | null>(null);
 
-  useEffect(() => {
-    // Simulate dashboard data loading
-    const timer = setTimeout(() => {
-      // Get user data
-      const userData = getUserData();
-      if (userData) {
-        // Extract first name
-        const firstName = userData.nomeCompleto.split(" ")[0];
-        setUserName(firstName);
-      }
+  // Derive user name from auth state
+  const fullName = userProfile?.nomeCompleto || user?.displayName || "";
+  const userName = fullName ? fullName.split(" ")[0] : "";
 
-      // Get purchased courses
-      const purchases = getPurchasedCourses();
-      const purchasedUserCourses: UserCourse[] = purchases
-        .filter((purchase) => allCourses[purchase.courseId])
-        .map((purchase) => {
-          const courseData = allCourses[purchase.courseId];
-          const { progress, percentage } = calculateCourseProgress(purchase.courseId);
-          return {
-            ...courseData,
-            progress,
-            progressPercentage: percentage,
-            enrolledAt: new Date(purchase.purchaseDate).toLocaleDateString('pt-BR'),
-            isPaid: true,
-          };
-        });
+  // Derive courses from localStorage (synchronous)
+  const { userCourses, enrolledCourseIds } = useMemo(() => {
+    if (authLoading) return { userCourses: [] as UserCourse[], enrolledCourseIds: new Set<string>() };
 
-      setUserCourses(purchasedUserCourses);
-      setEnrolledCourseIds(new Set(purchases.map(p => p.courseId)));
-      setIsLoading(false);
-    }, 1000);
+    const purchases = getPurchasedCourses();
+    const courses: UserCourse[] = purchases
+      .filter((purchase) => allCourses[purchase.courseId])
+      .map((purchase) => {
+        const courseData = allCourses[purchase.courseId];
+        const { progress, percentage } = calculateCourseProgress(purchase.courseId);
+        return {
+          ...courseData,
+          progress,
+          progressPercentage: percentage,
+          enrolledAt: new Date(purchase.purchaseDate).toLocaleDateString('pt-BR'),
+          isPaid: true,
+        };
+      });
 
-    return () => clearTimeout(timer);
-  }, []);
+    return {
+      userCourses: courses,
+      enrolledCourseIds: new Set(purchases.map(p => p.courseId)),
+    };
+  }, [authLoading]);
 
-  if (isLoading) {
+  if (authLoading) {
     return <DashboardSkeleton />;
   }
 

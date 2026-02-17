@@ -1,22 +1,24 @@
-// Simple storage utility for demo purposes
-// In production, this would be replaced with proper API calls and database
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "./firebase";
 
 export interface UserData {
   nomeCompleto: string;
   email: string;
-  telefone: string;
-  dataNascimento: string;
-  sexo: string;
-  estadoCivil: string;
-  escolaridade: string;
-  profissao: string;
-  endereco: string;
-  cidade: string;
-  estado: string;
-  cep: string;
-  denominacao: string;
-  comoConheceu: string;
-  observacoes: string;
+  telefone?: string;
+  dataNascimento?: string;
+  sexo?: string;
+  estadoCivil?: string;
+  escolaridade?: string;
+  profissao?: string;
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  denominacao?: string;
+  comoConheceu?: string;
+  observacoes?: string;
+  photoURL?: string;
+  authProvider?: string;
 }
 
 export interface PurchasedCourse {
@@ -27,22 +29,26 @@ export interface PurchasedCourse {
   status: "paid";
 }
 
-const USER_DATA_KEY = "casa_biblica_user_data";
-const PURCHASED_COURSES_KEY = "casa_biblica_purchased_courses";
+// --- Firestore user profile functions ---
 
-export function saveUserData(userData: UserData): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
-  }
+export async function saveUserProfile(uid: string, userData: UserData): Promise<void> {
+  await setDoc(doc(db, "users", uid), {
+    ...userData,
+    createdAt: serverTimestamp(),
+  }, { merge: true });
 }
 
-export function getUserData(): UserData | null {
-  if (typeof window !== "undefined") {
-    const data = localStorage.getItem(USER_DATA_KEY);
-    return data ? JSON.parse(data) : null;
+export async function getUserProfile(uid: string): Promise<UserData | null> {
+  const snap = await getDoc(doc(db, "users", uid));
+  if (snap.exists()) {
+    return snap.data() as UserData;
   }
   return null;
 }
+
+// --- localStorage functions (courses & lessons) ---
+
+const PURCHASED_COURSES_KEY = "casa_biblica_purchased_courses";
 
 export function savePurchasedCourse(purchase: PurchasedCourse): void {
   if (typeof window !== "undefined") {
@@ -65,10 +71,10 @@ export function isPurchased(courseId: string): boolean {
   return purchases.some((p) => p.courseId === courseId);
 }
 
-export function clearUserData(): void {
+export function clearLocalData(): void {
   if (typeof window !== "undefined") {
-    localStorage.removeItem(USER_DATA_KEY);
     localStorage.removeItem(PURCHASED_COURSES_KEY);
+    localStorage.removeItem(LESSON_PROGRESS_KEY);
   }
 }
 
