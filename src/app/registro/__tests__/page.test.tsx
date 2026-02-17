@@ -41,7 +41,7 @@ describe('RegistroPage', () => {
       expect(screen.getByLabelText(/^sexo/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/cidade/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/estado civil/i)).toBeInTheDocument();
-      expect(document.getElementById('estado')).toBeInTheDocument();
+      expect(document.getElementById('state')).toBeInTheDocument();
     });
 
     it('should render terms checkbox', () => {
@@ -229,7 +229,7 @@ describe('RegistroPage', () => {
       fireEvent.change(screen.getByLabelText(/data de nascimento/i), { target: { value: '1990-01-01' } });
       fireEvent.change(screen.getByLabelText(/^sexo/i), { target: { value: 'masculino' } });
       fireEvent.change(screen.getByLabelText(/cidade/i), { target: { value: 'Maringá' } });
-      fireEvent.change(document.getElementById('estado')!, { target: { value: 'PR' } });
+      fireEvent.change(document.getElementById('state')!, { target: { value: 'PR' } });
       fireEvent.click(screen.getByRole('checkbox'));
     }
 

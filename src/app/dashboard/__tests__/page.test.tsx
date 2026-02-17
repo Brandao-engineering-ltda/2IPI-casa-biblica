@@ -45,7 +45,7 @@ describe('DashboardPage', () => {
     });
 
     it('should hide loading skeleton after data loads', async () => {
-      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { nomeCompleto: 'João Silva Santos', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
+      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { fullName: 'João Silva Santos', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
       (getPurchasedCourses as jest.Mock).mockReturnValue([]);
 
       render(<DashboardPage />);
@@ -58,7 +58,7 @@ describe('DashboardPage', () => {
 
   describe('User Greeting', () => {
     it('should display personalized greeting when user data exists', async () => {
-      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { nomeCompleto: 'João Silva Santos', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
+      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { fullName: 'João Silva Santos', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
       (getPurchasedCourses as jest.Mock).mockReturnValue([]);
 
       render(<DashboardPage />);
@@ -69,7 +69,7 @@ describe('DashboardPage', () => {
     });
 
     it('should extract first name correctly from full name', async () => {
-      mockUseAuth.mockReturnValue({ user: { uid: '456', displayName: 'Maria Santos' }, userProfile: { nomeCompleto: 'Maria Santos Silva', email: 'maria@email.com' }, loading: false, refreshProfile: jest.fn() });
+      mockUseAuth.mockReturnValue({ user: { uid: '456', displayName: 'Maria Santos' }, userProfile: { fullName: 'Maria Santos Silva', email: 'maria@email.com' }, loading: false, refreshProfile: jest.fn() });
       (getPurchasedCourses as jest.Mock).mockReturnValue([]);
 
       render(<DashboardPage />);
@@ -80,7 +80,7 @@ describe('DashboardPage', () => {
     });
 
     it('should show welcome message when user is logged in', async () => {
-      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { nomeCompleto: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
+      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { fullName: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
       (getPurchasedCourses as jest.Mock).mockReturnValue([]);
 
       render(<DashboardPage />);
@@ -104,7 +104,7 @@ describe('DashboardPage', () => {
 
   describe('Empty State', () => {
     it('should show empty state when user has no courses', async () => {
-      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { nomeCompleto: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
+      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { fullName: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
       (getPurchasedCourses as jest.Mock).mockReturnValue([]);
 
       render(<DashboardPage />);
@@ -131,7 +131,7 @@ describe('DashboardPage', () => {
 
   describe('Purchased Courses Display', () => {
     it('should display purchased courses', async () => {
-      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { nomeCompleto: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
+      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { fullName: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
       (getPurchasedCourses as jest.Mock).mockReturnValue([
         {
           courseId: "fundamentos-da-fe",
@@ -150,7 +150,7 @@ describe('DashboardPage', () => {
     });
 
     it('should show "Pago" badge on purchased courses', async () => {
-      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { nomeCompleto: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
+      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { fullName: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
       (getPurchasedCourses as jest.Mock).mockReturnValue([
         {
           courseId: "fundamentos-da-fe",
@@ -169,7 +169,7 @@ describe('DashboardPage', () => {
     });
 
     it('should display multiple purchased courses', async () => {
-      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { nomeCompleto: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
+      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { fullName: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
       (getPurchasedCourses as jest.Mock).mockReturnValue([
         {
           courseId: "fundamentos-da-fe",
@@ -198,7 +198,7 @@ describe('DashboardPage', () => {
     it.skip('should show enrollment date for purchased courses', async () => {
       // Note: Enrollment date is currently not displayed in the UI
       // This test is skipped until the feature is implemented
-      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { nomeCompleto: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
+      mockUseAuth.mockReturnValue({ user: { uid: '123', displayName: 'João Silva' }, userProfile: { fullName: 'João Silva', email: 'joao@email.com' }, loading: false, refreshProfile: jest.fn() });
       (getPurchasedCourses as jest.Mock).mockReturnValue([
         {
           courseId: "fundamentos-da-fe",

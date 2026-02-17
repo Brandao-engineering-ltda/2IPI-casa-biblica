@@ -67,7 +67,7 @@ export default function LoginPage() {
       const user = result.user;
 
       await saveUserProfile(user.uid, {
-        nomeCompleto: user.displayName || "Usuário Google",
+        fullName: user.displayName || "Usuário Google",
         email: user.email || "",
         photoURL: user.photoURL || "",
         authProvider: "google",

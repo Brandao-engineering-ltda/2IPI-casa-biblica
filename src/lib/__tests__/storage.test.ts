@@ -154,9 +154,9 @@ describe('Storage Utilities', () => {
     const { db } = jest.requireMock('../firebase');
 
     const mockUserData: UserData = {
-      nomeCompleto: 'João Silva',
+      fullName: 'João Silva',
       email: 'joao@example.com',
-      telefone: '44999999999',
+      phone: '44999999999',
     };
 
     beforeEach(() => {
@@ -199,7 +199,7 @@ describe('Storage Utilities', () => {
 
     it('should return UserData when document exists', async () => {
       const mockData: UserData = {
-        nomeCompleto: 'Maria Santos',
+        fullName: 'Maria Santos',
         email: 'maria@example.com',
       };
       const mockDocRef = { id: 'user-789' };

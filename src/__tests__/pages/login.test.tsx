@@ -130,7 +130,7 @@ describe('LoginPage', () => {
 
       await waitFor(() => {
         expect(saveUserProfile).toHaveBeenCalledWith('google-uid-123', {
-          nomeCompleto: 'Maria Silva',
+          fullName: 'Maria Silva',
           email: 'maria@gmail.com',
           photoURL: 'https://photo.url/maria.jpg',
           authProvider: 'google',
@@ -162,7 +162,7 @@ describe('LoginPage', () => {
 
       await waitFor(() => {
         expect(saveUserProfile).toHaveBeenCalledWith('google-uid-456', {
-          nomeCompleto: 'Usuário Google',
+          fullName: 'Usuário Google',
           email: '',
           photoURL: '',
           authProvider: 'google',

@@ -2,21 +2,21 @@ import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
 
 export interface UserData {
-  nomeCompleto: string;
+  fullName: string;
   email: string;
-  telefone?: string;
-  dataNascimento?: string;
-  sexo?: string;
-  estadoCivil?: string;
-  escolaridade?: string;
-  profissao?: string;
-  endereco?: string;
-  cidade?: string;
-  estado?: string;
-  cep?: string;
-  denominacao?: string;
-  comoConheceu?: string;
-  observacoes?: string;
+  phone?: string;
+  birthDate?: string;
+  gender?: string;
+  maritalStatus?: string;
+  education?: string;
+  occupation?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  denomination?: string;
+  referralSource?: string;
+  notes?: string;
   photoURL?: string;
   authProvider?: string;
 }

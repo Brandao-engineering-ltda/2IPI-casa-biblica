@@ -38,7 +38,15 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-navy shadow-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <Link href={logoHref} className="flex items-center gap-3">
+        <Link
+          href={logoHref}
+          onClick={() => {
+            if (pathname === logoHref) {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+          className="flex items-center gap-3"
+        >
           <Image
             src="/logo-3d.png"
             alt="Logo 2ª IPI de Maringá"
