@@ -10,9 +10,19 @@ jest.mock('next/navigation', () => ({
   useParams: jest.fn(),
 }));
 
+// Mock Firebase
+jest.mock('@/lib/firebase', () => ({
+  auth: {},
+  signOut: jest.fn(),
+}));
+
+// Mock AuthContext
+jest.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ user: null, userProfile: null, loading: false, refreshProfile: jest.fn() }),
+}));
+
 // Mock storage utility
 jest.mock('@/lib/storage', () => ({
-  getUserData: jest.fn(),
   getPurchasedCourses: jest.fn(),
   getCompletedLessons: jest.fn(() => new Set<string>()),
   toggleLessonComplete: jest.fn(() => false),

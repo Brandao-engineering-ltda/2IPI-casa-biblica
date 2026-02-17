@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { getUserData } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Status = "em-andamento" | "proximo" | "em-breve";
 
@@ -351,13 +351,13 @@ export const cursos: Record<string, Course> = {
 export default function CoursePageClient() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const courseId = params.id as string;
   const course = cursos[courseId];
 
   const handleBack = () => {
-    const userData = getUserData();
-    if (userData) {
+    if (user) {
       router.push("/dashboard");
     } else {
       router.back();

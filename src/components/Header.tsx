@@ -2,21 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { clearUserData, getUserData } from "@/lib/storage";
+import { auth, signOut } from "@/lib/firebase";
+import { clearLocalData } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuth();
 
-  // Determine if user is logged in (check on every pathname change)
-  const isLoggedIn = useMemo(() => {
-    const userData = getUserData();
-    return userData !== null;
-    // We intentionally include pathname to re-check on route changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  const isLoggedIn = !!user;
 
   // Show nav links only on home page
   const showNavLinks = pathname === "/";
@@ -24,9 +21,19 @@ export function Header() {
   const showLoginButton = pathname === "/";
   // Show logout button on dashboard and other authenticated pages
   const showLogoutButton = pathname === "/dashboard";
-  
+
   // Determine logo link based on login status
   const logoHref = isLoggedIn ? "/dashboard" : "/";
+
+  async function handleLogout() {
+    try {
+      await signOut(auth);
+    } catch {
+      // Ignore errors
+    }
+    clearLocalData();
+    window.location.href = "/";
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-navy shadow-md">
@@ -77,19 +84,15 @@ export function Header() {
               href="/login"
               className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
             >
-              Login
+              Entrar
             </Link>
           )}
           {showLogoutButton && (
             <button
-              onClick={() => {
-                // Clear user data and redirect to home
-                clearUserData();
-                window.location.href = "/";
-              }}
+              onClick={handleLogout}
               className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
             >
-              Logout
+              Sair
             </button>
           )}
         </nav>
@@ -145,19 +148,18 @@ export function Header() {
                 onClick={() => setMenuOpen(false)}
                 className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
               >
-                Login
+                Entrar
               </Link>
             )}
             {showLogoutButton && (
               <button
                 onClick={() => {
                   setMenuOpen(false);
-                  clearUserData();
-                  window.location.href = "/";
+                  handleLogout();
                 }}
                 className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
               >
-                Logout
+                Sair
               </button>
             )}
           </div>

@@ -4,28 +4,29 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { saveUserData } from "@/lib/storage";
+import { auth, createUserWithEmailAndPassword } from "@/lib/firebase";
+import { saveUserProfile } from "@/lib/storage";
 
 export default function RegistroPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    nomeCompleto: "João Silva Santos",
-    email: "joao.silva@email.com",
-    telefone: "(11) 98765-4321",
-    dataNascimento: "1990-05-15",
-    sexo: "masculino",
-    estadoCivil: "casado",
-    escolaridade: "superior-completo",
-    profissao: "Professor",
-    endereco: "Rua das Flores, 123, Apto 45",
-    cidade: "São Paulo",
-    estado: "SP",
-    cep: "01234-567",
-    denominacao: "Igreja Batista",
-    comoConheceu: "Redes sociais",
-    observacoes: "Tenho interesse em aprofundar meus conhecimentos teológicos para melhor servir na igreja local.",
-    senha: "senha123",
-    confirmarSenha: "senha123"
+    nomeCompleto: "",
+    email: "",
+    telefone: "",
+    dataNascimento: "",
+    sexo: "",
+    estadoCivil: "",
+    escolaridade: "",
+    profissao: "",
+    endereco: "",
+    cidade: "",
+    estado: "",
+    cep: "",
+    denominacao: "",
+    comoConheceu: "",
+    observacoes: "",
+    senha: "",
+    confirmarSenha: ""
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -105,16 +106,34 @@ export default function RegistroPage() {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Save user data to localStorage (excluding passwords for security)
+    try {
+      const result = await createUserWithEmailAndPassword(auth, formData.email, formData.senha);
+
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { senha, confirmarSenha, ...userData } = formData;
-      saveUserData(userData);
-      
-      console.log("Form submitted:", formData);
+      const { senha, confirmarSenha, ...profileData } = formData;
+      await saveUserProfile(result.user.uid, {
+        ...profileData,
+        authProvider: "email",
+      });
+
       router.push("/dashboard");
-    }, 1500);
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code || "";
+      switch (code) {
+        case "auth/email-already-in-use":
+          setErrors({ email: "Este e-mail já está cadastrado." });
+          break;
+        case "auth/weak-password":
+          setErrors({ senha: "A senha é muito fraca. Use pelo menos 6 caracteres." });
+          break;
+        case "auth/invalid-email":
+          setErrors({ email: "E-mail inválido." });
+          break;
+        default:
+          setErrors({ email: "Ocorreu um erro ao criar a conta. Tente novamente." });
+      }
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -648,7 +667,7 @@ export default function RegistroPage() {
             <p className="text-sm text-cream-dark">
               Já tem uma conta?{" "}
               <Link href="/login" className="font-semibold text-primary transition-colors hover:text-primary-light">
-                Fazer login
+                Entrar
               </Link>
             </p>
           </div>
