@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { usePathname } from 'next/navigation';
@@ -279,6 +280,154 @@ describe('Header Component', () => {
       fireEvent.click(logoutButtons[0]);
 
       await waitFor(() => {
+        expect(clearLocalData).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Mobile Menu - Close on Navigation', () => {
+    it('should close mobile menu when Sobre link is clicked', () => {
+      (usePathname as jest.Mock).mockReturnValue('/');
+
+      render(<Header />);
+
+      const menuButton = screen.getByRole('button', { name: /abrir menu/i });
+      fireEvent.click(menuButton);
+
+      // Mobile menu should be open
+      const sobreLinks = screen.getAllByRole('link', { name: /sobre/i });
+      // Click the mobile menu Sobre link (last one, since mobile menu comes after desktop nav)
+      fireEvent.click(sobreLinks[sobreLinks.length - 1]);
+
+      // After clicking, the mobile nav should be removed from the DOM
+      const mobileNav = document.querySelector('nav.md\\:hidden');
+      expect(mobileNav).not.toBeInTheDocument();
+    });
+
+    it('should close mobile menu when Contato link is clicked', () => {
+      (usePathname as jest.Mock).mockReturnValue('/');
+
+      render(<Header />);
+
+      const menuButton = screen.getByRole('button', { name: /abrir menu/i });
+      fireEvent.click(menuButton);
+
+      const contatoLinks = screen.getAllByRole('link', { name: /contato/i });
+      fireEvent.click(contatoLinks[contatoLinks.length - 1]);
+
+      const mobileNav = document.querySelector('nav.md\\:hidden');
+      expect(mobileNav).not.toBeInTheDocument();
+    });
+
+    it('should close mobile menu when Entrar link is clicked on home page', () => {
+      (usePathname as jest.Mock).mockReturnValue('/');
+      mockUseAuth.mockReturnValue({ user: null, userProfile: null, loading: false, refreshProfile: jest.fn() });
+
+      render(<Header />);
+
+      const menuButton = screen.getByRole('button', { name: /abrir menu/i });
+      fireEvent.click(menuButton);
+
+      const entrarLinks = screen.getAllByRole('link', { name: /entrar/i });
+      fireEvent.click(entrarLinks[entrarLinks.length - 1]);
+
+      const mobileNav = document.querySelector('nav.md\\:hidden');
+      expect(mobileNav).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Mobile Menu - Toggle Close', () => {
+    it('should close mobile menu when hamburger is clicked again', () => {
+      (usePathname as jest.Mock).mockReturnValue('/');
+
+      render(<Header />);
+
+      const menuButton = screen.getByRole('button', { name: /abrir menu/i });
+
+      // Open menu
+      fireEvent.click(menuButton);
+      expect(document.querySelector('nav.md\\:hidden')).toBeInTheDocument();
+
+      // Close menu by clicking hamburger again
+      fireEvent.click(menuButton);
+      expect(document.querySelector('nav.md\\:hidden')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Mobile Logout Button', () => {
+    it('should call signOut and clearLocalData when mobile logout is clicked', async () => {
+      (usePathname as jest.Mock).mockReturnValue('/dashboard');
+
+      const { signOut: mockSignOut } = require('@/lib/firebase');
+
+      render(<Header />);
+
+      // Open mobile menu
+      const menuButton = screen.getByRole('button', { name: /abrir menu/i });
+      fireEvent.click(menuButton);
+
+      // Get all logout buttons; the mobile one is the last one
+      const logoutButtons = screen.getAllByRole('button', { name: /sair/i });
+      const mobileLogoutButton = logoutButtons[logoutButtons.length - 1];
+
+      fireEvent.click(mobileLogoutButton);
+
+      await waitFor(() => {
+        expect(mockSignOut).toHaveBeenCalled();
+        expect(clearLocalData).toHaveBeenCalled();
+      });
+    });
+
+    it('should close mobile menu when mobile logout is clicked', async () => {
+      (usePathname as jest.Mock).mockReturnValue('/dashboard');
+
+      render(<Header />);
+
+      const menuButton = screen.getByRole('button', { name: /abrir menu/i });
+      fireEvent.click(menuButton);
+
+      const logoutButtons = screen.getAllByRole('button', { name: /sair/i });
+      const mobileLogoutButton = logoutButtons[logoutButtons.length - 1];
+
+      fireEvent.click(mobileLogoutButton);
+
+      await waitFor(() => {
+        const mobileNav = document.querySelector('nav.md\\:hidden');
+        expect(mobileNav).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Logout - handleLogout function', () => {
+    it('should call signOut with auth and then clearLocalData on desktop logout', async () => {
+      (usePathname as jest.Mock).mockReturnValue('/dashboard');
+
+      const firebase = require('@/lib/firebase');
+
+      render(<Header />);
+
+      const logoutButton = screen.getByRole('button', { name: /sair/i });
+      fireEvent.click(logoutButton);
+
+      await waitFor(() => {
+        expect(firebase.signOut).toHaveBeenCalledWith(firebase.auth);
+        expect(clearLocalData).toHaveBeenCalled();
+      });
+    });
+
+    it('should still clear local data when signOut rejects (error path)', async () => {
+      (usePathname as jest.Mock).mockReturnValue('/dashboard');
+
+      const firebase = require('@/lib/firebase');
+      firebase.signOut.mockRejectedValueOnce(new Error('Auth network error'));
+
+      render(<Header />);
+
+      const logoutButton = screen.getByRole('button', { name: /sair/i });
+      fireEvent.click(logoutButton);
+
+      await waitFor(() => {
+        expect(firebase.signOut).toHaveBeenCalled();
         expect(clearLocalData).toHaveBeenCalled();
       });
     });
