@@ -639,4 +639,42 @@ describe('Admin Enrollments Page', () => {
 
     expect(exportEnrollmentsCSV).toHaveBeenCalledWith('Fundamentos da Fé', enrollments);
   });
+
+  it('toggles course section when clicking the header', async () => {
+    (getEnrollmentsByCourse as jest.Mock).mockResolvedValue([
+      {
+        courseId: 'fundamentos-da-fe',
+        courseTitle: 'Fundamentos da Fé',
+        enrollments: [
+          {
+            uid: 'user-1',
+            fullName: 'João Silva',
+            email: 'joao@email.com',
+            phone: '',
+            purchaseDate: '2026-02-10T10:00:00Z',
+            paymentMethod: 'pix',
+            amount: 250,
+            status: 'paid',
+          },
+        ],
+      },
+    ]);
+
+    render(<EnrollmentsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('João Silva')).toBeInTheDocument();
+    });
+
+    // Click the course header to collapse
+    fireEvent.click(screen.getByText('Fundamentos da Fé'));
+
+    // User data should be hidden after collapse
+    expect(screen.queryByText('João Silva')).not.toBeInTheDocument();
+
+    // Click again to expand
+    fireEvent.click(screen.getByText('Fundamentos da Fé'));
+
+    expect(screen.getByText('João Silva')).toBeInTheDocument();
+  });
 });

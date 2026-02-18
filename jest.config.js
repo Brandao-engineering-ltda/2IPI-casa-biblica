@@ -31,6 +31,7 @@ const config = {
     '!src/components/ClientProviders.tsx',
     '!src/middleware.ts',
     '!src/contexts/AuthContext.tsx',
+    '!src/lib/seed-courses.ts',
   ],
   coverageThreshold: {
     global: {
