@@ -1,4 +1,4 @@
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useRouter } from 'next/navigation';
 import RegistroSucessoPage from '../page';

@@ -17,7 +17,6 @@ import {
   getFirestore,
   doc,
   setDoc,
-  collection,
   serverTimestamp,
 } from "firebase/firestore";
 import { config } from "dotenv";

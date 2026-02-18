@@ -302,7 +302,7 @@ describe('Admin Cursos Page', () => {
   });
 
   it('toggles publish status when clicking "Sim"/"Nao" button', async () => {
-    const { saveCourse } = require('@/lib/courses');
+    const { saveCourse } = jest.requireMock<typeof import('@/lib/courses')>('@/lib/courses');
     (getAllCourses as jest.Mock).mockResolvedValue(mockCourses);
 
     render(<AdminCursosPage />);
@@ -326,7 +326,7 @@ describe('Admin Cursos Page', () => {
   });
 
   it('toggles unpublished course to published when clicking "Nao" button', async () => {
-    const { saveCourse } = require('@/lib/courses');
+    const { saveCourse } = jest.requireMock<typeof import('@/lib/courses')>('@/lib/courses');
     (getAllCourses as jest.Mock).mockResolvedValue(mockCourses);
 
     render(<AdminCursosPage />);
@@ -350,7 +350,7 @@ describe('Admin Cursos Page', () => {
   });
 
   it('calls deleteCourse when user confirms archiving via modal', async () => {
-    const { deleteCourse } = require('@/lib/courses');
+    const { deleteCourse } = jest.requireMock<typeof import('@/lib/courses')>('@/lib/courses');
     (getAllCourses as jest.Mock).mockResolvedValue(mockCourses);
 
     render(<AdminCursosPage />);
@@ -377,7 +377,7 @@ describe('Admin Cursos Page', () => {
   });
 
   it('does NOT call deleteCourse when user cancels the modal', async () => {
-    const { deleteCourse } = require('@/lib/courses');
+    const { deleteCourse } = jest.requireMock<typeof import('@/lib/courses')>('@/lib/courses');
     (getAllCourses as jest.Mock).mockResolvedValue(mockCourses);
 
     render(<AdminCursosPage />);
@@ -481,7 +481,7 @@ describe('Admin Configuracoes Page', () => {
   });
 
   it('saves configuration', async () => {
-    const { updateAdminEmails } = require('@/lib/admin');
+    const { updateAdminEmails } = jest.requireMock<typeof import('@/lib/admin')>('@/lib/admin');
     (getAdminEmails as jest.Mock).mockResolvedValue(['admin@example.com']);
 
     render(<AdminConfiguracoesPage />);
@@ -607,7 +607,7 @@ describe('Admin Enrollments Page', () => {
   });
 
   it('calls exportEnrollmentsCSV when clicking export button', async () => {
-    const { exportEnrollmentsCSV } = require('@/lib/csv-export');
+    const { exportEnrollmentsCSV } = jest.requireMock<typeof import('@/lib/csv-export')>('@/lib/csv-export');
     const enrollments = [
       {
         uid: 'user-1',

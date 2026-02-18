@@ -42,7 +42,7 @@ import HistoricoPage from '@/app/admin/courses/[id]/history/page';
 import ModulosPage from '@/app/admin/courses/[id]/modules/page';
 import CourseForm from '@/app/admin/courses/CourseForm';
 
-const { getCourse, getCourseHistory, getCourseModules, saveModule, deleteModule, saveLesson, deleteLesson } = require('@/lib/courses');
+const { getCourse, getCourseHistory, getCourseModules, saveModule, deleteModule, saveLesson, deleteLesson } = jest.requireMock<typeof import('@/lib/courses')>('@/lib/courses');
 
 describe('Admin Subpages', () => {
   beforeEach(() => {
@@ -280,7 +280,7 @@ describe('Admin Subpages', () => {
     });
 
     it('calls restoreCourseVersion when user confirms restore', async () => {
-      const { restoreCourseVersion } = require('@/lib/courses');
+      const { restoreCourseVersion } = jest.requireMock<typeof import('@/lib/courses')>('@/lib/courses');
       getCourseHistory.mockResolvedValue(mockHistory);
       jest.spyOn(window, 'confirm').mockReturnValue(true);
 
@@ -311,7 +311,7 @@ describe('Admin Subpages', () => {
     });
 
     it('does NOT call restoreCourseVersion when user cancels the confirm dialog', async () => {
-      const { restoreCourseVersion } = require('@/lib/courses');
+      const { restoreCourseVersion } = jest.requireMock<typeof import('@/lib/courses')>('@/lib/courses');
       getCourseHistory.mockResolvedValue(mockHistory);
       jest.spyOn(window, 'confirm').mockReturnValue(false);
 

@@ -42,7 +42,6 @@ const {
   query,
   where,
   orderBy,
-  serverTimestamp,
 } = jest.requireMock('firebase/firestore') as {
   collection: jest.Mock;
   doc: jest.Mock;
@@ -53,7 +52,6 @@ const {
   query: jest.Mock;
   where: jest.Mock;
   orderBy: jest.Mock;
-  serverTimestamp: jest.Mock;
 };
 
 // ---------------------------------------------------------------------------

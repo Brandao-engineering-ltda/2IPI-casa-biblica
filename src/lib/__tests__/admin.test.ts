@@ -189,7 +189,6 @@ describe('Admin Utilities', () => {
   describe('checkAndSetAdminRole', () => {
     it('should set admin role and return true when email is in whitelist', async () => {
       const { doc, getDoc, setDoc } = jest.requireMock('firebase/firestore');
-      const { db } = jest.requireMock('../firebase');
 
       const configDocRef = { id: 'admin-config' };
       const userDocRef = { id: 'user-doc' };
