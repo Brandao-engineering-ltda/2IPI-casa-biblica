@@ -4,11 +4,13 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { getUserProfile, type UserData } from "@/lib/storage";
+import { checkAndSetAdminRole } from "@/lib/admin";
 
 interface AuthContextType {
   user: User | null;
   userProfile: UserData | null;
   loading: boolean;
+  isAdmin: boolean;
   refreshProfile: () => Promise<void>;
 }
 
@@ -16,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   userProfile: null,
   loading: true,
+  isAdmin: false,
   refreshProfile: async () => {},
 });
 
@@ -23,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   async function fetchProfile(firebaseUser: User) {
     const profile = await getUserProfile(firebaseUser.uid);
@@ -34,8 +38,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser);
       if (firebaseUser) {
         await fetchProfile(firebaseUser);
+        if (firebaseUser.email) {
+          const admin = await checkAndSetAdminRole(
+            firebaseUser.uid,
+            firebaseUser.email
+          );
+          setIsAdmin(admin);
+        } else {
+          setIsAdmin(false);
+        }
       } else {
         setUserProfile(null);
+        setIsAdmin(false);
       }
       setLoading(false);
     });
@@ -50,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading, refreshProfile }}>
+    <AuthContext.Provider value={{ user, userProfile, loading, isAdmin, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

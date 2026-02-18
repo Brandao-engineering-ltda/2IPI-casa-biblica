@@ -37,7 +37,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/#cursos"
+                  href="/#courses"
                   className="text-sm text-cream-dark transition-colors hover:text-primary-light"
                 >
                   Cursos
