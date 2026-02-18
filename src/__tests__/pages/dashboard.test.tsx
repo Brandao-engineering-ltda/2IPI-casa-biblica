@@ -10,6 +10,12 @@ jest.mock('@/components/Skeleton', () => ({
 // Mock firebase
 jest.mock('@/lib/firebase', () => ({ auth: {}, signOut: jest.fn() }))
 
+// Mock Next.js navigation
+const mockPush = jest.fn()
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(() => ({ push: mockPush })),
+}))
+
 // Mock AuthContext
 const mockUseAuth = jest.fn()
 jest.mock('@/contexts/AuthContext', () => ({
@@ -81,7 +87,7 @@ jest.mock('@/lib/courses', () => ({
 describe('DashboardPage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockUseAuth.mockReturnValue({ user: null, userProfile: null, loading: false, refreshProfile: jest.fn() })
+    mockUseAuth.mockReturnValue({ user: { uid: '123' }, userProfile: null, loading: false, refreshProfile: jest.fn() })
     ;(getPurchasedCourses as jest.Mock).mockResolvedValue([])
   })
 

@@ -27,6 +27,8 @@ import {
   deleteLesson,
   restoreCourseVersion,
   getCourseHistory,
+  portugueseDateToISO,
+  isoToPortugueseDate,
   type ModuleWithLessons,
 } from '../courses';
 
@@ -124,7 +126,7 @@ describe('getAllCourses', () => {
 // ---- getPublishedCourses --------------------------------------------------
 
 describe('getPublishedCourses', () => {
-  it('queries only published courses ordered by order', async () => {
+  it('queries only published courses ordered by startDateISO', async () => {
     const courses = [
       { id: 'c1', data: { title: 'Published', order: 1, published: true } },
     ];
@@ -134,7 +136,7 @@ describe('getPublishedCourses', () => {
     const result = await getPublishedCourses();
 
     expect(where).toHaveBeenCalledWith('published', '==', true);
-    expect(orderBy).toHaveBeenCalledWith('order', 'asc');
+    expect(orderBy).toHaveBeenCalledWith('startDateISO', 'asc');
     expect(query).toHaveBeenCalled();
     expect(result).toEqual([
       { id: 'c1', title: 'Published', order: 1, published: true },
@@ -725,5 +727,63 @@ describe('getCourseHistory', () => {
     const result = await getCourseHistory('c1');
 
     expect(result).toEqual([]);
+  });
+});
+
+// ---- portugueseDateToISO --------------------------------------------------
+
+describe('portugueseDateToISO', () => {
+  it('converts a standard Portuguese date to ISO format', () => {
+    expect(portugueseDateToISO('10 Fev 2026')).toBe('2026-02-10');
+  });
+
+  it('pads single-digit days', () => {
+    expect(portugueseDateToISO('4 Mai 2026')).toBe('2026-05-04');
+  });
+
+  it('handles all Portuguese month abbreviations', () => {
+    expect(portugueseDateToISO('1 Jan 2026')).toBe('2026-01-01');
+    expect(portugueseDateToISO('15 Mar 2026')).toBe('2026-03-15');
+    expect(portugueseDateToISO('20 Abr 2026')).toBe('2026-04-20');
+    expect(portugueseDateToISO('7 Jun 2026')).toBe('2026-06-07');
+    expect(portugueseDateToISO('13 Jul 2026')).toBe('2026-07-13');
+    expect(portugueseDateToISO('30 Ago 2026')).toBe('2026-08-30');
+    expect(portugueseDateToISO('21 Set 2026')).toBe('2026-09-21');
+    expect(portugueseDateToISO('10 Out 2026')).toBe('2026-10-10');
+    expect(portugueseDateToISO('5 Nov 2026')).toBe('2026-11-05');
+    expect(portugueseDateToISO('25 Dez 2026')).toBe('2026-12-25');
+  });
+
+  it('returns empty string for invalid format', () => {
+    expect(portugueseDateToISO('')).toBe('');
+    expect(portugueseDateToISO('invalid')).toBe('');
+    expect(portugueseDateToISO('10-02-2026')).toBe('');
+  });
+
+  it('returns empty string for unknown month abbreviation', () => {
+    expect(portugueseDateToISO('10 Xyz 2026')).toBe('');
+  });
+});
+
+// ---- isoToPortugueseDate --------------------------------------------------
+
+describe('isoToPortugueseDate', () => {
+  it('converts an ISO date to Portuguese format', () => {
+    expect(isoToPortugueseDate('2026-02-10')).toBe('10 Fev 2026');
+  });
+
+  it('strips leading zeros from the day', () => {
+    expect(isoToPortugueseDate('2026-05-04')).toBe('4 Mai 2026');
+  });
+
+  it('handles all months', () => {
+    expect(isoToPortugueseDate('2026-01-01')).toBe('1 Jan 2026');
+    expect(isoToPortugueseDate('2026-03-15')).toBe('15 Mar 2026');
+    expect(isoToPortugueseDate('2026-07-13')).toBe('13 Jul 2026');
+    expect(isoToPortugueseDate('2026-12-25')).toBe('25 Dez 2026');
+  });
+
+  it('returns empty string for empty input', () => {
+    expect(isoToPortugueseDate('')).toBe('');
   });
 });

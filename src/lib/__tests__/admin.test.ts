@@ -3,6 +3,7 @@ import {
   isAdminEmail,
   checkAndSetAdminRole,
   updateAdminEmails,
+  getEnrollmentsByCourse,
 } from '../admin';
 
 jest.mock('../firebase', () => ({ db: {} }));
@@ -10,7 +11,13 @@ jest.mock('../firebase', () => ({ db: {} }));
 jest.mock('firebase/firestore', () => ({
   doc: jest.fn(),
   getDoc: jest.fn(() => Promise.resolve({ exists: () => false, data: () => undefined })),
+  getDocs: jest.fn(() => Promise.resolve({ docs: [] })),
   setDoc: jest.fn(() => Promise.resolve()),
+  collectionGroup: jest.fn(),
+}));
+
+jest.mock('../courses', () => ({
+  getAllCourses: jest.fn(() => Promise.resolve([])),
 }));
 
 describe('Admin Utilities', () => {
@@ -22,10 +29,12 @@ describe('Admin Utilities', () => {
     delete process.env.NEXT_PUBLIC_ADMIN_EMAILS;
 
     // Reset mocks to default behavior
-    const { doc, getDoc, setDoc } = jest.requireMock('firebase/firestore');
+    const { doc, getDoc, getDocs, setDoc, collectionGroup } = jest.requireMock('firebase/firestore');
     doc.mockReset();
     getDoc.mockReset().mockResolvedValue({ exists: () => false, data: () => undefined });
+    getDocs.mockReset().mockResolvedValue({ docs: [] });
     setDoc.mockReset().mockResolvedValue(undefined);
+    collectionGroup.mockReset();
   });
 
   afterAll(() => {
@@ -337,6 +346,109 @@ describe('Admin Utilities', () => {
       await updateAdminEmails(['test@example.com']);
 
       expect(setDoc).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getEnrollmentsByCourse', () => {
+    it('should return empty array when no purchases exist', async () => {
+      const { getDocs, collectionGroup } = jest.requireMock('firebase/firestore');
+      const { getAllCourses } = jest.requireMock('../courses');
+
+      collectionGroup.mockReturnValue('purchases-group');
+      getDocs.mockResolvedValue({ docs: [] });
+      getAllCourses.mockResolvedValue([]);
+
+      const result = await getEnrollmentsByCourse();
+
+      expect(result).toEqual([]);
+      expect(collectionGroup).toHaveBeenCalledWith({}, 'purchases');
+    });
+
+    it('should group purchases by courseId and fetch user profiles', async () => {
+      const { doc, getDoc, getDocs, collectionGroup } = jest.requireMock('firebase/firestore');
+      const { getAllCourses } = jest.requireMock('../courses');
+
+      collectionGroup.mockReturnValue('purchases-group');
+
+      // Mock purchases from two users
+      getDocs.mockResolvedValue({
+        docs: [
+          {
+            ref: { path: 'users/uid-1/purchases/p1' },
+            data: () => ({
+              courseId: 'fundamentos-da-fe',
+              purchaseDate: '2026-02-10T10:00:00Z',
+              paymentMethod: 'pix',
+              amount: 250,
+              status: 'paid',
+            }),
+          },
+          {
+            ref: { path: 'users/uid-2/purchases/p2' },
+            data: () => ({
+              courseId: 'fundamentos-da-fe',
+              purchaseDate: '2026-02-11T10:00:00Z',
+              paymentMethod: 'cartao',
+              amount: 275,
+              status: 'paid',
+            }),
+          },
+        ],
+      });
+
+      // Mock user profile lookups
+      doc.mockReturnValue({});
+      getDoc.mockImplementation(() =>
+        Promise.resolve({
+          exists: () => true,
+          data: () => ({ fullName: 'Test User', email: 'test@email.com', phone: '123' }),
+        })
+      );
+
+      getAllCourses.mockResolvedValue([
+        { id: 'fundamentos-da-fe', title: 'Fundamentos da Fé' },
+      ]);
+
+      const result = await getEnrollmentsByCourse();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].courseId).toBe('fundamentos-da-fe');
+      expect(result[0].courseTitle).toBe('Fundamentos da Fé');
+      expect(result[0].enrollments).toHaveLength(2);
+    });
+
+    it('should handle missing user profiles gracefully', async () => {
+      const { doc, getDoc, getDocs, collectionGroup } = jest.requireMock('firebase/firestore');
+      const { getAllCourses } = jest.requireMock('../courses');
+
+      collectionGroup.mockReturnValue('purchases-group');
+      getDocs.mockResolvedValue({
+        docs: [
+          {
+            ref: { path: 'users/uid-1/purchases/p1' },
+            data: () => ({
+              courseId: 'hermeneutica',
+              purchaseDate: '2026-03-01T10:00:00Z',
+              paymentMethod: 'pix',
+              amount: 0,
+              status: 'paid',
+            }),
+          },
+        ],
+      });
+
+      doc.mockReturnValue({});
+      getDoc.mockResolvedValue({ exists: () => false, data: () => ({}) });
+
+      getAllCourses.mockResolvedValue([
+        { id: 'hermeneutica', title: 'Hermenêutica Bíblica' },
+      ]);
+
+      const result = await getEnrollmentsByCourse();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].enrollments[0].fullName).toBe('');
+      expect(result[0].enrollments[0].email).toBe('');
     });
   });
 });

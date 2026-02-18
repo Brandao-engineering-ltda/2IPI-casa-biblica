@@ -36,7 +36,7 @@ describe('HeroSection Component', () => {
 
   it('renders feature highlights', () => {
     render(<HeroSection />)
-    expect(screen.getByText('Cursos Gratuitos')).toBeInTheDocument()
+    expect(screen.getByText('Cursos Bíblicos')).toBeInTheDocument()
     expect(screen.getByText('Comunidade SOMOS CASA')).toBeInTheDocument()
     expect(screen.getByText('Certificado de Conclusão')).toBeInTheDocument()
   })

@@ -6,11 +6,25 @@ import { getAllCourses, deleteCourse, saveCourse, type CourseData } from "@/lib/
 import { seedDefaultCourses } from "@/lib/seed-courses";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface ModalState {
+  open: boolean;
+  title: string;
+  message: string;
+  type: "confirm" | "success" | "error";
+  onConfirm?: () => void;
+}
+
 export default function AdminCursosPage() {
   const { user } = useAuth();
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
+  const [modal, setModal] = useState<ModalState>({
+    open: false,
+    title: "",
+    message: "",
+    type: "confirm",
+  });
 
   useEffect(() => {
     fetchCourses();
@@ -42,28 +56,61 @@ export default function AdminCursosPage() {
     }
   }
 
-  async function handleDelete(course: CourseData) {
-    if (!confirm(`Tem certeza que deseja arquivar "${course.title}"?`)) return;
-    try {
-      await deleteCourse(course.id);
-      await fetchCourses();
-    } catch {
-      // Error deleting
-    }
+  function handleDelete(course: CourseData) {
+    setModal({
+      open: true,
+      title: "Arquivar Curso",
+      message: `Tem certeza que deseja arquivar "${course.title}"?`,
+      type: "confirm",
+      onConfirm: async () => {
+        setModal((m) => ({ ...m, open: false }));
+        try {
+          await deleteCourse(course.id);
+          await fetchCourses();
+        } catch {
+          setModal({
+            open: true,
+            title: "Erro",
+            message: "Erro ao arquivar o curso. Tente novamente.",
+            type: "error",
+          });
+        }
+      },
+    });
   }
 
-  async function handleSeed() {
+  function handleSeed() {
     if (!user) return;
-    if (!confirm("Adicionar os 6 cursos padrão ao Firestore?")) return;
-    setSeeding(true);
-    try {
-      await seedDefaultCourses(user.uid, user.email || "");
-      await fetchCourses();
-    } catch {
-      // Error seeding
-    } finally {
-      setSeeding(false);
-    }
+    setModal({
+      open: true,
+      title: "Re-seed Cursos",
+      message:
+        "Isso vai adicionar (ou atualizar) os 6 cursos padrão com todos os módulos e aulas no Firestore. Deseja continuar?",
+      type: "confirm",
+      onConfirm: async () => {
+        setModal((m) => ({ ...m, open: false }));
+        setSeeding(true);
+        try {
+          const count = await seedDefaultCourses(user.uid, user.email || "");
+          await fetchCourses();
+          setModal({
+            open: true,
+            title: "Sucesso",
+            message: `${count} cursos foram adicionados/atualizados com seus módulos e aulas.`,
+            type: "success",
+          });
+        } catch {
+          setModal({
+            open: true,
+            title: "Erro",
+            message: "Erro ao adicionar os cursos. Verifique o console para mais detalhes.",
+            type: "error",
+          });
+        } finally {
+          setSeeding(false);
+        }
+      },
+    });
   }
 
   if (loading) {
@@ -78,12 +125,21 @@ export default function AdminCursosPage() {
     <div>
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-navy">Cursos</h1>
-        <Link
-          href="/admin/courses/new"
-          className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
-        >
-          + Novo Curso
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSeed}
+            disabled={seeding}
+            className="rounded-full border-2 border-navy-light/20 px-5 py-2 text-sm font-semibold text-navy-light transition-colors hover:border-navy hover:text-navy disabled:opacity-50"
+          >
+            {seeding ? "Atualizando..." : "Re-seed Cursos Padrao"}
+          </button>
+          <Link
+            href="/admin/courses/new"
+            className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+          >
+            + Novo Curso
+          </Link>
+        </div>
       </div>
 
       {courses.length === 0 ? (
@@ -179,6 +235,75 @@ export default function AdminCursosPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Modal */}
+      {modal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            {/* Icon */}
+            <div className="mb-4 flex justify-center">
+              {modal.type === "confirm" && (
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                  <svg className="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              )}
+              {modal.type === "success" && (
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+                  <svg className="h-7 w-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
+              {modal.type === "error" && (
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+                  <svg className="h-7 w-7 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            {/* Title */}
+            <h3 className="mb-2 text-center text-lg font-bold text-navy">
+              {modal.title}
+            </h3>
+
+            {/* Message */}
+            <p className="mb-6 text-center text-sm text-navy-light">
+              {modal.message}
+            </p>
+
+            {/* Buttons */}
+            <div className="flex gap-3">
+              {modal.type === "confirm" ? (
+                <>
+                  <button
+                    onClick={() => setModal((m) => ({ ...m, open: false }))}
+                    className="flex-1 rounded-full border-2 border-navy-light/20 px-5 py-2.5 text-sm font-semibold text-navy-light transition-colors hover:border-navy hover:text-navy"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={modal.onConfirm}
+                    className="flex-1 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+                  >
+                    Confirmar
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setModal((m) => ({ ...m, open: false }))}
+                  className="flex-1 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-navy-dark"
+                >
+                  Fechar
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

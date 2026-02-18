@@ -3,97 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
+import { getPublishedCourses, type CourseData } from "@/lib/courses";
 
-type Status = "em-andamento" | "proximo" | "em-breve";
-
-interface Course {
-  id: string;
-  titulo: string;
-  descricao: string;
-  duracao: string;
-  nivel: string;
-  dataInicio: string;
-  dataFim: string;
-  status: Status;
-  imagem: string;
-}
-
-const cursos: Course[] = [
-  {
-    id: "panorama-biblico",
-    titulo: "Panorama Bíblico",
-    descricao:
-      "Uma visão geral de toda a Bíblia, do Gênesis ao Apocalipse. Entenda a grande narrativa das Escrituras.",
-    duracao: "12 semanas",
-    nivel: "Iniciante",
-    dataInicio: "10 Fev 2026",
-    dataFim: "4 Mai 2026",
-    status: "em-andamento",
-    imagem: "/images/courses/panorama-biblico.jpg",
-  },
-  {
-    id: "fundamentos-da-fe",
-    titulo: "Fundamentos da Fé",
-    descricao:
-      "Estudo das doutrinas essenciais da fé cristã reformada. Base sólida para o crescimento espiritual.",
-    duracao: "8 semanas",
-    nivel: "Iniciante",
-    dataInicio: "11 Mai 2026",
-    dataFim: "6 Jul 2026",
-    status: "proximo",
-    imagem: "/images/courses/fundamentos-da-fe.jpg",
-  },
-  {
-    id: "hermeneutica",
-    titulo: "Hermenêutica Bíblica",
-    descricao:
-      "Aprenda princípios de interpretação bíblica para estudar as Escrituras com profundidade e fidelidade.",
-    duracao: "10 semanas",
-    nivel: "Intermediário",
-    dataInicio: "13 Jul 2026",
-    dataFim: "21 Set 2026",
-    status: "em-breve",
-    imagem: "/images/courses/hermeneutica.jpg",
-  },
-  {
-    id: "antigo-testamento",
-    titulo: "Antigo Testamento",
-    descricao:
-      "Estudo aprofundado dos livros do Antigo Testamento, seu contexto histórico e sua relevância hoje.",
-    duracao: "16 semanas",
-    nivel: "Intermediário",
-    dataInicio: "28 Set 2026",
-    dataFim: "18 Jan 2027",
-    status: "em-breve",
-    imagem: "/images/courses/antigo-testamento.jpg",
-  },
-  {
-    id: "novo-testamento",
-    titulo: "Novo Testamento",
-    descricao:
-      "Explore os Evangelhos, Atos, as Epístolas e o Apocalipse com profundidade teológica e aplicação prática.",
-    duracao: "16 semanas",
-    nivel: "Intermediário",
-    dataInicio: "1 Mar 2027",
-    dataFim: "21 Jun 2027",
-    status: "em-breve",
-    imagem: "/images/courses/novo-testamento.jpg",
-  },
-  {
-    id: "lideranca-crista",
-    titulo: "Liderança Cristã",
-    descricao:
-      "Formação de líderes servos segundo o modelo bíblico. Para quem deseja servir na igreja local.",
-    duracao: "8 semanas",
-    nivel: "Avançado",
-    dataInicio: "5 Jul 2027",
-    dataFim: "30 Ago 2027",
-    status: "em-breve",
-    imagem: "/images/courses/lideranca-crista.jpg",
-  },
-];
-
-function statusBadge(status: Status) {
+function statusBadge(status: CourseData["status"]) {
   switch (status) {
     case "em-andamento":
       return {
@@ -145,13 +57,13 @@ function CalendarIcon({ className }: { className?: string }) {
 }
 
 function CourseDialog({
-  curso,
+  course,
   onClose,
 }: {
-  curso: Course;
+  course: CourseData;
   onClose: () => void;
 }) {
-  const badge = statusBadge(curso.status);
+  const badge = statusBadge(course.status);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -183,8 +95,8 @@ function CourseDialog({
         {/* Background image */}
         <div className="absolute inset-0">
           <Image
-            src={curso.imagem}
-            alt={curso.titulo}
+            src={course.image}
+            alt={course.title}
             fill
             className="object-cover opacity-25"
             sizes="(max-width: 672px) 100vw, 672px"
@@ -236,31 +148,31 @@ function CourseDialog({
               {badge.label}
             </span>
             <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${nivelColor(curso.nivel)}`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${nivelColor(course.level)}`}
             >
-              {curso.nivel}
+              {course.level}
             </span>
           </div>
 
           {/* Title */}
           <h3 className="mt-6 text-3xl font-extrabold text-white md:text-4xl">
-            {curso.titulo}
+            {course.title}
           </h3>
 
           {/* Description */}
           <p className="mt-5 max-w-lg text-base leading-relaxed text-cream-dark">
-            {curso.descricao}
+            {course.description}
           </p>
 
           {/* Dates & Duration */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-cream-dark">
             <div className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4 text-primary-light" />
-              <span>Início: {curso.dataInicio}</span>
+              <span>Início: {course.startDate}</span>
             </div>
             <div className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4 text-primary-light" />
-              <span>Término: {curso.dataFim}</span>
+              <span>Término: {course.endDate}</span>
             </div>
             <div className="flex items-center gap-2">
               <svg
@@ -276,7 +188,7 @@ function CourseDialog({
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span>{curso.duracao}</span>
+              <span>{course.duration}</span>
             </div>
           </div>
 
@@ -308,13 +220,13 @@ function CourseDialog({
 }
 
 function FeaturedCourse({
-  curso,
+  course,
   onClick,
 }: {
-  curso: Course;
+  course: CourseData;
   onClick: () => void;
 }) {
-  const badge = statusBadge(curso.status);
+  const badge = statusBadge(course.status);
 
   return (
     <article
@@ -323,8 +235,8 @@ function FeaturedCourse({
     >
       <div className="absolute inset-0">
         <Image
-          src={curso.imagem}
-          alt={curso.titulo}
+          src={course.image}
+          alt={course.title}
           fill
           className="object-cover opacity-40 transition-opacity duration-500 group-hover:opacity-60"
           sizes="(max-width: 1280px) 100vw, 1280px"
@@ -340,29 +252,29 @@ function FeaturedCourse({
             {badge.label}
           </span>
           <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${nivelColor(curso.nivel)}`}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${nivelColor(course.level)}`}
           >
-            {curso.nivel}
+            {course.level}
           </span>
         </div>
 
         <h3 className="text-3xl font-extrabold text-white md:text-4xl">
-          {curso.titulo}
+          {course.title}
         </h3>
 
         <p className="text-base leading-relaxed text-cream-dark md:text-lg">
-          {curso.descricao}
+          {course.description}
         </p>
 
         <div className="flex flex-wrap items-center gap-6 text-sm text-cream-dark">
           <div className="flex items-center gap-2">
             <CalendarIcon className="h-4 w-4 text-primary-light" />
             <span>
-              {curso.dataInicio} — {curso.dataFim}
+              {course.startDate} — {course.endDate}
             </span>
           </div>
           <span className="text-cream-dark/60">|</span>
-          <span>{curso.duracao}</span>
+          <span>{course.duration}</span>
         </div>
 
         <span className="mt-2 inline-flex w-fit items-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-white transition-colors group-hover:bg-primary-dark">
@@ -387,13 +299,13 @@ function FeaturedCourse({
 }
 
 function CourseCard({
-  curso,
+  course,
   onClick,
 }: {
-  curso: Course;
+  course: CourseData;
   onClick: () => void;
 }) {
-  const badge = statusBadge(curso.status);
+  const badge = statusBadge(course.status);
 
   return (
     <article
@@ -404,8 +316,8 @@ function CourseCard({
       <div className="pointer-events-none absolute inset-0 z-10">
         <div className="course-image-reveal absolute inset-0 overflow-hidden">
           <Image
-            src={curso.imagem}
-            alt={curso.titulo}
+            src={course.image}
+            alt={course.title}
             fill
             className="object-cover"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -416,14 +328,14 @@ function CourseCard({
 
       {/* Hover overlay content */}
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-end p-8 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-        <h3 className="text-xl font-bold text-white">{curso.titulo}</h3>
+        <h3 className="text-xl font-bold text-white">{course.title}</h3>
         <p className="mt-2 text-sm leading-relaxed text-cream-dark">
-          {curso.descricao}
+          {course.description}
         </p>
         <div className="mt-3 flex items-center gap-2 text-xs text-cream-dark">
           <CalendarIcon className="h-3.5 w-3.5 text-primary-light" />
           <span>
-            {curso.dataInicio} — {curso.dataFim}
+            {course.startDate} — {course.endDate}
           </span>
         </div>
         <span className="mt-4 inline-flex w-fit items-center rounded-full bg-primary px-5 py-2 text-xs font-semibold text-white">
@@ -440,25 +352,25 @@ function CourseCard({
             {badge.label}
           </span>
           <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${nivelColor(curso.nivel)}`}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${nivelColor(course.level)}`}
           >
-            {curso.nivel}
+            {course.level}
           </span>
         </div>
 
-        <h3 className="mt-5 text-xl font-bold text-navy">{curso.titulo}</h3>
+        <h3 className="mt-5 text-xl font-bold text-navy">{course.title}</h3>
 
         <p className="mt-3 flex-1 text-sm leading-relaxed text-navy-light">
-          {curso.descricao}
+          {course.description}
         </p>
 
         <div className="mt-6 flex items-center gap-2 text-xs text-navy-light">
           <CalendarIcon className="h-3.5 w-3.5" />
           <span>
-            {curso.dataInicio} — {curso.dataFim}
+            {course.startDate} — {course.endDate}
           </span>
           <span className="text-navy-light/40">|</span>
-          <span>{curso.duracao}</span>
+          <span>{course.duration}</span>
         </div>
 
       </div>
@@ -467,8 +379,60 @@ function CourseCard({
 }
 
 export function CoursesSection() {
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [currentCourse, ...upcomingCourses] = cursos;
+  const [selectedCourse, setSelectedCourse] = useState<CourseData | null>(null);
+  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const data = await getPublishedCourses();
+        setCourses(data);
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCourses();
+  }, []);
+
+  if (loading) {
+    return (
+      <section id="courses" className="bg-cream py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-navy md:text-4xl">
+              Nossos Cursos
+            </h2>
+            <p className="mt-4 text-lg text-navy-light">
+              Trilhas de formação bíblica para cada etapa da sua caminhada
+            </p>
+          </div>
+          <div className="mt-14 flex justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (courses.length === 0) {
+    return (
+      <section id="courses" className="bg-cream py-20">
+        <div className="mx-auto max-w-7xl px-6 text-center">
+          <h2 className="text-3xl font-bold text-navy md:text-4xl">
+            Nossos Cursos
+          </h2>
+          <p className="mt-4 text-lg text-navy-light">
+            Em breve novos cursos serão disponibilizados.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const [currentCourse, ...upcomingCourses] = courses;
 
   return (
     <section id="courses" className="bg-cream py-20">
@@ -484,15 +448,15 @@ export function CoursesSection() {
 
         <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           <FeaturedCourse
-            curso={currentCourse}
+            course={currentCourse}
             onClick={() => setSelectedCourse(currentCourse)}
           />
 
-          {upcomingCourses.map((curso) => (
+          {upcomingCourses.map((course) => (
             <CourseCard
-              key={curso.id}
-              curso={curso}
-              onClick={() => setSelectedCourse(curso)}
+              key={course.id}
+              course={course}
+              onClick={() => setSelectedCourse(course)}
             />
           ))}
         </div>
@@ -500,7 +464,7 @@ export function CoursesSection() {
 
       {selectedCourse && (
         <CourseDialog
-          curso={selectedCourse}
+          course={selectedCourse}
           onClose={() => setSelectedCourse(null)}
         />
       )}

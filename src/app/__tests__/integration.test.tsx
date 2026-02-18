@@ -1,6 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { useRouter } from 'next/navigation';
 import DashboardPage from '@/app/dashboard/page';
 import {
   savePurchasedCourse,
@@ -10,8 +9,9 @@ import {
 } from '@/lib/storage';
 
 // Mock Next.js navigation
+const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(),
+  useRouter: jest.fn(() => ({ push: mockPush })),
   useParams: jest.fn(),
 }));
 
@@ -85,23 +85,16 @@ jest.mock('@/lib/storage', () => ({
 }));
 
 describe('Complete User Flow Integration Tests', () => {
-  const mockPush = jest.fn();
-
   beforeEach(() => {
+    jest.clearAllMocks();
     purchaseStore = [];
 
     mockUseAuth.mockReturnValue({
-      user: null,
+      user: { uid: 'default-uid' },
       userProfile: null,
       loading: false,
       refreshProfile: jest.fn(),
     });
-
-    (useRouter as jest.Mock).mockReturnValue({
-      push: mockPush,
-    });
-
-    jest.clearAllMocks();
   });
 
   describe('End-to-End User Journey', () => {
@@ -202,6 +195,13 @@ describe('Complete User Flow Integration Tests', () => {
     });
 
     it('should show empty dashboard for new user', async () => {
+      mockUseAuth.mockReturnValue({
+        user: { uid: 'new-user' },
+        userProfile: null,
+        loading: false,
+        refreshProfile: jest.fn(),
+      });
+
       render(<DashboardPage />);
 
       await waitFor(() => {
@@ -248,16 +248,14 @@ describe('Complete User Flow Integration Tests', () => {
       const afterLogout = await getPurchasedCourses('test-uid-4');
       expect(afterLogout).toEqual([]);
 
+      // With user null, dashboard redirects to login (shows skeleton)
       render(<DashboardPage />);
 
       await waitFor(() => {
-        expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
-      }, { timeout: 2000 });
-
-      await waitFor(() => {
-        expect(screen.getByText(/meus cursos/i)).toBeInTheDocument();
-        expect(screen.queryByText(/olá/i)).not.toBeInTheDocument();
+        expect(screen.getByTestId('dashboard-skeleton')).toBeInTheDocument();
       });
+
+      expect(mockPush).toHaveBeenCalledWith('/login?redirect=/dashboard');
     });
   });
 

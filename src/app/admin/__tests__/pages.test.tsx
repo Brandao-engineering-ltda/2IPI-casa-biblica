@@ -11,8 +11,10 @@ jest.mock('@/contexts/AuthContext', () => ({
 }));
 
 // Next.js navigation
+const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(() => '/admin'),
+  useRouter: jest.fn(() => ({ push: mockPush })),
 }));
 
 // Courses module
@@ -26,6 +28,12 @@ jest.mock('@/lib/courses', () => ({
 jest.mock('@/lib/admin', () => ({
   getAdminEmails: jest.fn(() => Promise.resolve([])),
   updateAdminEmails: jest.fn(() => Promise.resolve()),
+  getEnrollmentsByCourse: jest.fn(() => Promise.resolve([])),
+}));
+
+// CSV export
+jest.mock('@/lib/csv-export', () => ({
+  exportEnrollmentsCSV: jest.fn(),
 }));
 
 // Seed courses
@@ -37,8 +45,9 @@ import AdminLayout from '@/app/admin/layout';
 import AdminDashboard from '@/app/admin/page';
 import AdminCursosPage from '@/app/admin/courses/page';
 import AdminConfiguracoesPage from '@/app/admin/settings/page';
+import EnrollmentsPage from '@/app/admin/enrollments/page';
 import { getAllCourses } from '@/lib/courses';
-import { getAdminEmails } from '@/lib/admin';
+import { getAdminEmails, getEnrollmentsByCourse } from '@/lib/admin';
 
 const mockCourses = [
   {
@@ -340,9 +349,8 @@ describe('Admin Cursos Page', () => {
     });
   });
 
-  it('calls deleteCourse when user confirms archiving via "Arquivar" button', async () => {
+  it('calls deleteCourse when user confirms archiving via modal', async () => {
     const { deleteCourse } = require('@/lib/courses');
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
     (getAllCourses as jest.Mock).mockResolvedValue(mockCourses);
 
     render(<AdminCursosPage />);
@@ -351,24 +359,25 @@ describe('Admin Cursos Page', () => {
       expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument();
     });
 
-    // Click the first "Arquivar" button
+    // Click the first "Arquivar" button to open modal
     const arquivarButtons = screen.getAllByRole('button', { name: 'Arquivar' });
     fireEvent.click(arquivarButtons[0]);
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      'Tem certeza que deseja arquivar "Fundamentos da Fé"?'
-    );
+    // Modal should appear with confirmation message
+    await waitFor(() => {
+      expect(screen.getByText(/Tem certeza que deseja arquivar/i)).toBeInTheDocument();
+    });
+
+    // Click "Confirmar" in the modal
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
 
     await waitFor(() => {
       expect(deleteCourse).toHaveBeenCalledWith('fundamentos-da-fe');
     });
-
-    (window.confirm as jest.Mock).mockRestore();
   });
 
-  it('does NOT call deleteCourse when user cancels the confirm dialog', async () => {
+  it('does NOT call deleteCourse when user cancels the modal', async () => {
     const { deleteCourse } = require('@/lib/courses');
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
     (getAllCourses as jest.Mock).mockResolvedValue(mockCourses);
 
     render(<AdminCursosPage />);
@@ -380,10 +389,15 @@ describe('Admin Cursos Page', () => {
     const arquivarButtons = screen.getAllByRole('button', { name: 'Arquivar' });
     fireEvent.click(arquivarButtons[0]);
 
-    expect(window.confirm).toHaveBeenCalled();
-    expect(deleteCourse).not.toHaveBeenCalled();
+    // Modal should appear
+    await waitFor(() => {
+      expect(screen.getByText(/Tem certeza que deseja arquivar/i)).toBeInTheDocument();
+    });
 
-    (window.confirm as jest.Mock).mockRestore();
+    // Click "Cancelar" in the modal
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    expect(deleteCourse).not.toHaveBeenCalled();
   });
 });
 
@@ -497,5 +511,132 @@ describe('Admin Configuracoes Page', () => {
     fireEvent.click(screen.getByText('Adicionar'));
 
     expect(screen.getByText(/invalido/i)).toBeInTheDocument();
+  });
+});
+
+describe('Admin Enrollments Page', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseAuth.mockReturnValue({
+      isAdmin: true,
+      loading: false,
+      user: { uid: '1' },
+      userProfile: null,
+      refreshProfile: jest.fn(),
+    });
+  });
+
+  it('shows "Matrículas por Curso" heading after loading', async () => {
+    (getEnrollmentsByCourse as jest.Mock).mockResolvedValue([]);
+
+    render(<EnrollmentsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Matrículas por Curso/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows empty state when no enrollments', async () => {
+    (getEnrollmentsByCourse as jest.Mock).mockResolvedValue([]);
+
+    render(<EnrollmentsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Nenhuma matrícula encontrada/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows course enrollments with user data', async () => {
+    (getEnrollmentsByCourse as jest.Mock).mockResolvedValue([
+      {
+        courseId: 'fundamentos-da-fe',
+        courseTitle: 'Fundamentos da Fé',
+        enrollments: [
+          {
+            uid: 'user-1',
+            fullName: 'João Silva',
+            email: 'joao@email.com',
+            phone: '(11) 99999-0000',
+            purchaseDate: '2026-02-10T10:00:00Z',
+            paymentMethod: 'pix',
+            amount: 250,
+            status: 'paid',
+          },
+        ],
+      },
+    ]);
+
+    render(<EnrollmentsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('João Silva')).toBeInTheDocument();
+    expect(screen.getByText('joao@email.com')).toBeInTheDocument();
+    expect(screen.getByText('(11) 99999-0000')).toBeInTheDocument();
+    expect(screen.getByText('Pago')).toBeInTheDocument();
+    expect(screen.getByText('1 aluno')).toBeInTheDocument();
+  });
+
+  it('shows "Exportar CSV" button for each course', async () => {
+    (getEnrollmentsByCourse as jest.Mock).mockResolvedValue([
+      {
+        courseId: 'fundamentos-da-fe',
+        courseTitle: 'Fundamentos da Fé',
+        enrollments: [
+          {
+            uid: 'user-1',
+            fullName: 'João',
+            email: 'joao@email.com',
+            phone: '',
+            purchaseDate: '2026-02-10T10:00:00Z',
+            paymentMethod: 'pix',
+            amount: 250,
+            status: 'paid',
+          },
+        ],
+      },
+    ]);
+
+    render(<EnrollmentsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Exportar CSV')).toBeInTheDocument();
+    });
+  });
+
+  it('calls exportEnrollmentsCSV when clicking export button', async () => {
+    const { exportEnrollmentsCSV } = require('@/lib/csv-export');
+    const enrollments = [
+      {
+        uid: 'user-1',
+        fullName: 'João',
+        email: 'joao@email.com',
+        phone: '',
+        purchaseDate: '2026-02-10T10:00:00Z',
+        paymentMethod: 'pix',
+        amount: 250,
+        status: 'paid',
+      },
+    ];
+
+    (getEnrollmentsByCourse as jest.Mock).mockResolvedValue([
+      {
+        courseId: 'fundamentos-da-fe',
+        courseTitle: 'Fundamentos da Fé',
+        enrollments,
+      },
+    ]);
+
+    render(<EnrollmentsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Exportar CSV'));
+
+    expect(exportEnrollmentsCSV).toHaveBeenCalledWith('Fundamentos da Fé', enrollments);
   });
 });

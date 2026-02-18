@@ -45,8 +45,8 @@ export default function DashboardPage() {
           coursesMap[course.id] = course;
         }
         setAllCourses(coursesMap);
-      } catch {
-        // Firestore unavailable
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
       } finally {
         setCoursesLoading(false);
       }

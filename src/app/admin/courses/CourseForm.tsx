@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { type CourseData } from "@/lib/courses";
+import { type CourseData, isoToPortugueseDate } from "@/lib/courses";
 
 type CourseFormData = Omit<CourseData, "createdAt" | "updatedAt">;
 
@@ -13,7 +13,9 @@ const defaultCourse: CourseFormData = {
   duration: "",
   level: "Iniciante",
   startDate: "",
+  startDateISO: "",
   endDate: "",
+  endDateISO: "",
   status: "em-breve",
   image: "/images/courses/default.jpg",
   instructor: "",
@@ -191,19 +193,25 @@ export default function CourseForm({ initialData, onSubmit, isNew }: CourseFormP
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Data de Inicio">
             <input
-              type="text"
-              value={form.startDate}
-              onChange={(e) => updateField("startDate", e.target.value)}
-              placeholder="11 Mai 2026"
+              type="date"
+              value={form.startDateISO}
+              onChange={(e) => {
+                const iso = e.target.value;
+                updateField("startDateISO", iso);
+                updateField("startDate", isoToPortugueseDate(iso));
+              }}
               className="w-full rounded-lg border border-navy-light/20 px-4 py-2.5 text-sm text-navy outline-none focus:border-primary"
             />
           </Field>
           <Field label="Data de Termino">
             <input
-              type="text"
-              value={form.endDate}
-              onChange={(e) => updateField("endDate", e.target.value)}
-              placeholder="6 Jul 2026"
+              type="date"
+              value={form.endDateISO}
+              onChange={(e) => {
+                const iso = e.target.value;
+                updateField("endDateISO", iso);
+                updateField("endDate", isoToPortugueseDate(iso));
+              }}
               className="w-full rounded-lg border border-navy-light/20 px-4 py-2.5 text-sm text-navy outline-none focus:border-primary"
             />
           </Field>

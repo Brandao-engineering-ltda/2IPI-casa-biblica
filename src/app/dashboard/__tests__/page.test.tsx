@@ -4,8 +4,9 @@ import DashboardPage from '../page';
 import { getPurchasedCourses } from '@/lib/storage';
 
 // Mock Next.js navigation
+const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(),
+  useRouter: jest.fn(() => ({ push: mockPush })),
 }));
 
 // Mock firebase
@@ -88,7 +89,7 @@ jest.mock('@/lib/courses', () => ({
 describe('DashboardPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuth.mockReturnValue({ user: null, userProfile: null, loading: false, refreshProfile: jest.fn() });
+    mockUseAuth.mockReturnValue({ user: { uid: '123' }, userProfile: null, loading: false, refreshProfile: jest.fn() });
     (getPurchasedCourses as jest.Mock).mockResolvedValue([]);
   });
 

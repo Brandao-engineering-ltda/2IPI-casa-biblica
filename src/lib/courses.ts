@@ -23,7 +23,9 @@ export interface CourseData {
   duration: string;
   level: string;
   startDate: string;
+  startDateISO: string;
   endDate: string;
+  endDateISO: string;
   status: "em-andamento" | "proximo" | "em-breve";
   image: string;
   instructor: string;
@@ -84,7 +86,7 @@ export async function getPublishedCourses(): Promise<CourseData[]> {
     query(
       collection(db, "courses"),
       where("published", "==", true),
-      orderBy("order", "asc")
+      orderBy("startDateISO", "asc")
     )
   );
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as CourseData);
@@ -289,4 +291,33 @@ export function getAllLessonIdsFromModules(
   modules: ModuleWithLessons[]
 ): string[] {
   return modules.flatMap((m) => m.lessons.map((l) => l.id));
+}
+
+// --- Date Helpers ---
+
+const PT_MONTHS: Record<string, string> = {
+  Jan: "01", Fev: "02", Mar: "03", Abr: "04",
+  Mai: "05", Jun: "06", Jul: "07", Ago: "08",
+  Set: "09", Out: "10", Nov: "11", Dez: "12",
+};
+
+const PT_MONTH_NAMES = [
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+];
+
+export function portugueseDateToISO(ptDate: string): string {
+  const parts = ptDate.trim().split(/\s+/);
+  if (parts.length !== 3) return "";
+  const [day, monthAbbr, year] = parts;
+  const month = PT_MONTHS[monthAbbr];
+  if (!month) return "";
+  return `${year}-${month}-${day.padStart(2, "0")}`;
+}
+
+export function isoToPortugueseDate(iso: string): string {
+  if (!iso) return "";
+  const [year, month, day] = iso.split("-");
+  const monthName = PT_MONTH_NAMES[parseInt(month, 10) - 1];
+  return `${parseInt(day, 10)} ${monthName} ${year}`;
 }

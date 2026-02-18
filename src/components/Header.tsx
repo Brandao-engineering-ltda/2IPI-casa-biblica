@@ -11,16 +11,13 @@ import { useAuth } from "@/contexts/AuthContext";
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   const isLoggedIn = !!user;
 
   // Show nav links only on home page
   const showNavLinks = pathname === "/";
-  // Show login button only on home page
-  const showLoginButton = pathname === "/";
-  // Show logout button on dashboard and other authenticated pages
-  const showLogoutButton = pathname === "/dashboard";
+  const isOnAdmin = pathname.startsWith("/admin");
 
   // Determine logo link based on login status
   const logoHref = isLoggedIn ? "/dashboard" : "/";
@@ -87,21 +84,40 @@ export function Header() {
               </Link>
             </>
           )}
-          {showLoginButton && (
-            <Link
-              href="/login"
-              className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
-            >
-              Entrar
-            </Link>
-          )}
-          {showLogoutButton && (
-            <button
-              onClick={handleLogout}
-              className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
-            >
-              Sair
-            </button>
+          {isLoggedIn ? (
+            <>
+              {isAdmin && !isOnAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                >
+                  Admin
+                </Link>
+              )}
+              {isAdmin && isOnAdmin && (
+                <Link
+                  href="/dashboard"
+                  className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                >
+                  Dashboard
+                </Link>
+              )}
+              <button
+                onClick={handleLogout}
+                className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+              >
+                Sair
+              </button>
+            </>
+          ) : (
+            showNavLinks && (
+              <Link
+                href="/login"
+                className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+              >
+                Entrar
+              </Link>
+            )
           )}
         </nav>
 
@@ -150,25 +166,46 @@ export function Header() {
                 </Link>
               </>
             )}
-            {showLoginButton && (
-              <Link
-                href="/login"
-                onClick={() => setMenuOpen(false)}
-                className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
-              >
-                Entrar
-              </Link>
-            )}
-            {showLogoutButton && (
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  handleLogout();
-                }}
-                className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
-              >
-                Sair
-              </button>
+            {isLoggedIn ? (
+              <>
+                {isAdmin && !isOnAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMenuOpen(false)}
+                    className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                  >
+                    Admin
+                  </Link>
+                )}
+                {isAdmin && isOnAdmin && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                  >
+                    Dashboard
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+                >
+                  Sair
+                </button>
+              </>
+            ) : (
+              showNavLinks && (
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+                >
+                  Entrar
+                </Link>
+              )
             )}
           </div>
         </nav>

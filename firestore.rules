@@ -38,14 +38,14 @@ service cloud.firestore {
       }
     }
 
-    // Users: owner can read/write their own doc
+    // Users: owner can read/write; admins can read
     match /users/{uid} {
-      allow read: if isAuth() && request.auth.uid == uid;
+      allow read: if isAuth() && (request.auth.uid == uid || isAdmin());
       allow write: if isAuth() && request.auth.uid == uid;
 
       // Purchases subcollection
       match /purchases/{purchaseId} {
-        allow read: if isAuth() && request.auth.uid == uid;
+        allow read: if isAuth() && (request.auth.uid == uid || isAdmin());
         allow write: if isAuth() && request.auth.uid == uid;
       }
 
