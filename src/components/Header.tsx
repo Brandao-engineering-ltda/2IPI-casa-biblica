@@ -68,7 +68,7 @@ export function Header() {
           {showNavLinks && (
             <>
               <Link
-                href="/#cursos"
+                href="/#courses"
                 className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
               >
                 Cursos
@@ -128,7 +128,7 @@ export function Header() {
             {showNavLinks && (
               <>
                 <Link
-                  href="/#cursos"
+                  href="/#courses"
                   onClick={() => setMenuOpen(false)}
                   className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
                 >

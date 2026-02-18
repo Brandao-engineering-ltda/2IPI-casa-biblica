@@ -29,7 +29,7 @@ const cursos: Course[] = [
     dataInicio: "10 Fev 2026",
     dataFim: "4 Mai 2026",
     status: "em-andamento",
-    imagem: "/images/cursos/panorama-biblico.jpg",
+    imagem: "/images/courses/panorama-biblico.jpg",
   },
   {
     id: "fundamentos-da-fe",
@@ -41,7 +41,7 @@ const cursos: Course[] = [
     dataInicio: "11 Mai 2026",
     dataFim: "6 Jul 2026",
     status: "proximo",
-    imagem: "/images/cursos/fundamentos-da-fe.jpg",
+    imagem: "/images/courses/fundamentos-da-fe.jpg",
   },
   {
     id: "hermeneutica",
@@ -53,7 +53,7 @@ const cursos: Course[] = [
     dataInicio: "13 Jul 2026",
     dataFim: "21 Set 2026",
     status: "em-breve",
-    imagem: "/images/cursos/hermeneutica.jpg",
+    imagem: "/images/courses/hermeneutica.jpg",
   },
   {
     id: "antigo-testamento",
@@ -65,7 +65,7 @@ const cursos: Course[] = [
     dataInicio: "28 Set 2026",
     dataFim: "18 Jan 2027",
     status: "em-breve",
-    imagem: "/images/cursos/antigo-testamento.jpg",
+    imagem: "/images/courses/antigo-testamento.jpg",
   },
   {
     id: "novo-testamento",
@@ -77,7 +77,7 @@ const cursos: Course[] = [
     dataInicio: "1 Mar 2027",
     dataFim: "21 Jun 2027",
     status: "em-breve",
-    imagem: "/images/cursos/novo-testamento.jpg",
+    imagem: "/images/courses/novo-testamento.jpg",
   },
   {
     id: "lideranca-crista",
@@ -89,7 +89,7 @@ const cursos: Course[] = [
     dataInicio: "5 Jul 2027",
     dataFim: "30 Ago 2027",
     status: "em-breve",
-    imagem: "/images/cursos/lideranca-crista.jpg",
+    imagem: "/images/courses/lideranca-crista.jpg",
   },
 ];
 
@@ -471,7 +471,7 @@ export function CoursesSection() {
   const [currentCourse, ...upcomingCourses] = cursos;
 
   return (
-    <section id="cursos" className="bg-cream py-20">
+    <section id="courses" className="bg-cream py-20">
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-navy md:text-4xl">

@@ -104,7 +104,7 @@ describe('Header Component', () => {
     it('should have correct href for nav links', () => {
       render(<Header />);
 
-      expect(screen.getByRole('link', { name: /cursos/i })).toHaveAttribute('href', '/#cursos');
+      expect(screen.getByRole('link', { name: /cursos/i })).toHaveAttribute('href', '/#courses');
       expect(screen.getByRole('link', { name: /sobre/i })).toHaveAttribute('href', '/#sobre');
       expect(screen.getByRole('link', { name: /contato/i })).toHaveAttribute('href', '/#contato');
     });
@@ -160,7 +160,7 @@ describe('Header Component', () => {
     });
 
     it('should hide nav links on registration page', () => {
-      (usePathname as jest.Mock).mockReturnValue('/registro');
+      (usePathname as jest.Mock).mockReturnValue('/register');
 
       render(<Header />);
 
@@ -170,7 +170,7 @@ describe('Header Component', () => {
     });
 
     it('should hide nav links on course pages', () => {
-      (usePathname as jest.Mock).mockReturnValue('/curso/fundamentos-da-fe');
+      (usePathname as jest.Mock).mockReturnValue('/course/fundamentos-da-fe');
 
       render(<Header />);
 
@@ -180,7 +180,7 @@ describe('Header Component', () => {
     });
 
     it('should hide buttons on course content pages', () => {
-      (usePathname as jest.Mock).mockReturnValue('/curso/fundamentos-da-fe/conteudo');
+      (usePathname as jest.Mock).mockReturnValue('/course/fundamentos-da-fe/content');
 
       render(<Header />);
 

@@ -11,11 +11,15 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/lib/firebase', () => ({
   auth: {},
-  createUserWithEmailAndPassword: jest.fn(() => Promise.resolve({ user: { uid: '123' } })),
+  createUserWithEmailAndPassword: jest.fn(() => Promise.resolve({ user: { uid: '123', email: 'joao@email.com' } })),
 }));
 
 jest.mock('@/lib/storage', () => ({
   saveUserProfile: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('@/lib/admin', () => ({
+  isAdminEmail: jest.fn(() => Promise.resolve(false)),
 }));
 
 describe('RegistroPage', () => {

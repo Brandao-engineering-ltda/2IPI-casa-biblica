@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { auth, createUserWithEmailAndPassword } from "@/lib/firebase";
 import { saveUserProfile } from "@/lib/storage";
+import { isAdminEmail } from "@/lib/admin";
 
 export default function RegistroPage() {
   const router = useRouter();
@@ -116,7 +117,8 @@ export default function RegistroPage() {
         authProvider: "email",
       });
 
-      router.push("/dashboard");
+      const admin = await isAdminEmail(result.user.email || "");
+      router.push(admin ? "/admin" : "/dashboard");
     } catch (err: unknown) {
       const code = (err as { code?: string }).code || "";
       switch (code) {

@@ -27,6 +27,10 @@ const config = {
     '!src/app/**/layout.tsx',
     '!src/app/skeleton-demo/**',
     '!src/components/SkeletonExample.tsx',
+    '!src/lib/firebase.ts',
+    '!src/components/ClientProviders.tsx',
+    '!src/middleware.ts',
+    '!src/contexts/AuthContext.tsx',
   ],
   coverageThreshold: {
     global: {

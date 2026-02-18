@@ -30,7 +30,7 @@ export function HeroSection() {
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
           <Link
-            href="#cursos"
+            href="#courses"
             className="rounded-full bg-primary px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-primary-dark"
           >
             Explorar Cursos

@@ -5,22 +5,24 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { getPurchasedCourses, getCompletedLessons, toggleLessonComplete } from "@/lib/storage";
-import { coursesContent } from "@/lib/courseContent";
-import type { Lesson } from "@/lib/courseContent";
+import { getCourse, getCourseModules, type CourseData, type ModuleWithLessons, type LessonData } from "@/lib/courses";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function CourseContentPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const courseId = params.id as string;
-  const course = coursesContent[courseId];
 
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [course, setCourse] = useState<CourseData | null>(null);
+  const [modules, setModules] = useState<ModuleWithLessons[]>([]);
+  const [selectedLesson, setSelectedLesson] = useState<LessonData | null>(null);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [completedSet, setCompletedSet] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
   // Flat list of all lessons in order for prev/next navigation
-  const allLessons = course?.modules.flatMap(m => m.lessons) ?? [];
+  const allLessons = modules.flatMap(m => m.lessons);
 
   const currentIndex = selectedLesson
     ? allLessons.findIndex(l => l.id === selectedLesson.id)
@@ -29,45 +31,67 @@ export default function CourseContentPage() {
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
 
-  const handleToggleComplete = useCallback(() => {
-    if (!selectedLesson) return;
-    toggleLessonComplete(courseId, selectedLesson.id);
-    setCompletedSet(getCompletedLessons(courseId));
-  }, [selectedLesson, courseId]);
+  const handleToggleComplete = useCallback(async () => {
+    if (!selectedLesson || !user) return;
+    await toggleLessonComplete(user.uid, courseId, selectedLesson.id);
+    const updated = await getCompletedLessons(user.uid, courseId);
+    setCompletedSet(updated);
+  }, [selectedLesson, courseId, user]);
 
-  const handleNavigate = useCallback((lesson: Lesson) => {
+  const handleNavigate = useCallback((lesson: LessonData) => {
     setSelectedLesson(lesson);
     // Expand the module containing the target lesson
-    const targetModule = course?.modules.find(m => m.lessons.some(l => l.id === lesson.id));
+    const targetModule = modules.find(m => m.lessons.some(l => l.id === lesson.id));
     if (targetModule) {
       setExpandedModules(prev => new Set([...prev, targetModule.id]));
     }
-  }, [course]);
+  }, [modules]);
 
   useEffect(() => {
-    // Check if user has purchased this course
-    const purchases = getPurchasedCourses();
-    const purchased = purchases.some(p => p.courseId === courseId);
+    if (!user) return;
 
-    if (!purchased) {
-      router.push(`/curso/${courseId}`);
-      return;
+    async function loadCourseContent() {
+      // Check if user has purchased this course
+      const purchases = await getPurchasedCourses(user!.uid);
+      const purchased = purchases.some(p => p.courseId === courseId);
+
+      if (!purchased) {
+        router.push(`/course/${courseId}`);
+        return;
+      }
+
+      try {
+        const [courseData, modulesData, completed] = await Promise.all([
+          getCourse(courseId),
+          getCourseModules(courseId),
+          getCompletedLessons(user!.uid, courseId),
+        ]);
+
+        if (!courseData) {
+          setIsLoading(false);
+          return;
+        }
+
+        setCourse(courseData);
+        setModules(modulesData);
+
+        const nextExpanded = modulesData.length
+          ? new Set([modulesData[0].id])
+          : new Set<string>();
+        const firstLesson = modulesData.length ? modulesData[0].lessons[0] ?? null : null;
+
+        queueMicrotask(() => {
+          setCompletedSet(completed);
+          setIsLoading(false);
+          setExpandedModules(nextExpanded);
+          if (firstLesson) setSelectedLesson(firstLesson);
+        });
+      } catch {
+        setIsLoading(false);
+      }
     }
-
-    // Defer state updates to avoid synchronous setState in effect (cascading renders)
-    const completed = getCompletedLessons(courseId);
-    const nextExpanded = course?.modules.length
-      ? new Set([course.modules[0].id])
-      : new Set<string>();
-    const nextLesson = course?.modules.length ? course.modules[0].lessons[0] ?? null : null;
-
-    queueMicrotask(() => {
-      setCompletedSet(completed);
-      setIsLoading(false);
-      setExpandedModules(nextExpanded);
-      if (nextLesson) setSelectedLesson(nextLesson);
-    });
-  }, [courseId, course, router]);
+    loadCourseContent();
+  }, [courseId, router, user]);
 
   if (isLoading) {
     return (
@@ -149,19 +173,19 @@ export default function CourseContentPage() {
               <div className="mb-6 rounded-2xl bg-white p-6 shadow-md">
                 <div className="relative mb-4 h-32 overflow-hidden rounded-lg">
                   <Image
-                    src={course.imagem}
-                    alt={course.titulo}
+                    src={course.image}
+                    alt={course.title}
                     fill
                     className="object-cover"
                   />
                 </div>
-                <h1 className="mb-2 text-xl font-bold text-navy">{course.titulo}</h1>
-                <p className="mb-3 text-sm text-navy-light">{course.descricao}</p>
+                <h1 className="mb-2 text-xl font-bold text-navy">{course.title}</h1>
+                <p className="mb-3 text-sm text-navy-light">{course.description}</p>
                 <div className="flex items-center gap-2 text-xs text-navy-light">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span>{course.professor}</span>
+                  <span>{course.instructor}</span>
                 </div>
               </div>
 
@@ -169,7 +193,7 @@ export default function CourseContentPage() {
               <div className="rounded-2xl bg-white p-6 shadow-md">
                 <h2 className="mb-4 text-lg font-bold text-navy">Conteúdo do Curso</h2>
                 <div className="space-y-2">
-                  {course.modules.map((module) => (
+                  {modules.map((module) => (
                     <div key={module.id} className="border-b border-navy-light/10 pb-2 last:border-0">
                       <button
                         onClick={() => toggleModule(module.id)}

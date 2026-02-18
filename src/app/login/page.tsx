@@ -12,6 +12,7 @@ import {
   sendPasswordResetEmail,
 } from "@/lib/firebase";
 import { saveUserProfile } from "@/lib/storage";
+import { isAdminEmail } from "@/lib/admin";
 
 function getFirebaseErrorMessage(code: string): string {
   switch (code) {
@@ -49,8 +50,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/dashboard");
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const admin = await isAdminEmail(result.user.email || "");
+      router.push(admin ? "/admin" : "/dashboard");
     } catch (err: unknown) {
       const code = (err as { code?: string }).code || "";
       setError(getFirebaseErrorMessage(code));
@@ -73,7 +75,8 @@ export default function LoginPage() {
         authProvider: "google",
       });
 
-      router.push("/dashboard");
+      const admin = await isAdminEmail(user.email || "");
+      router.push(admin ? "/admin" : "/dashboard");
     } catch (err: unknown) {
       const code = (err as { code?: string }).code || "";
       const message = getFirebaseErrorMessage(code);
@@ -262,7 +265,7 @@ export default function LoginPage() {
                 </button>
 
                 <Link
-                  href="/registro"
+                  href="/register"
                   className="w-full rounded-full border border-primary px-8 py-3.5 text-center text-base font-semibold text-primary transition-colors hover:bg-primary hover:text-white"
                 >
                   Criar Conta

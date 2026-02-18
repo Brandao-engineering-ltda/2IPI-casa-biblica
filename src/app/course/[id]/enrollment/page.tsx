@@ -3,125 +3,54 @@
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { savePurchasedCourse } from "@/lib/storage";
-
-interface Course {
-  id: string;
-  titulo: string;
-  descricao: string;
-  duracao: string;
-  nivel: string;
-  dataInicio: string;
-  dataFim: string;
-  imagem: string;
-  professor: string;
-  cargaHoraria: string;
-  formato: string;
-  precoPix: number;
-  precoCartao: number;
-  parcelasCartao: number;
-}
-
-const cursos: Record<string, Course> = {
-  "fundamentos-da-fe": {
-    id: "fundamentos-da-fe",
-    titulo: "Fundamentos da Fé",
-    descricao: "Estudo das doutrinas essenciais da fé cristã reformada. Base sólida para o crescimento espiritual.",
-    duracao: "8 semanas",
-    nivel: "Iniciante",
-    dataInicio: "11 Mai 2026",
-    dataFim: "6 Jul 2026",
-    imagem: "/images/cursos/fundamentos-da-fe.jpg",
-    professor: "Rev. João Silva",
-    cargaHoraria: "24 horas",
-    formato: "Presencial - Quartas-feiras às 19h30",
-    precoPix: 250.00,
-    precoCartao: 275.00,
-    parcelasCartao: 3
-  },
-  "teologia-sistematica": {
-    id: "teologia-sistematica",
-    titulo: "Teologia Sistemática",
-    descricao: "Estudo aprofundado das principais doutrinas cristãs de forma organizada e sistemática.",
-    duracao: "12 semanas",
-    nivel: "Intermediário",
-    dataInicio: "14 Abr 2026",
-    dataFim: "6 Jul 2026",
-    imagem: "/images/cursos/panorama-biblico.jpg",
-    professor: "Dr. Maria Santos",
-    cargaHoraria: "36 horas",
-    formato: "Online - Segundas e Quartas às 20h",
-    precoPix: 380.00,
-    precoCartao: 420.00,
-    parcelasCartao: 3
-  },
-  "hermeneutica-biblica": {
-    id: "hermeneutica-biblica",
-    titulo: "Hermenêutica Bíblica",
-    descricao: "Princípios e métodos para interpretação correta das Escrituras Sagradas.",
-    duracao: "10 semanas",
-    nivel: "Intermediário",
-    dataInicio: "20 Jun 2026",
-    dataFim: "29 Ago 2026",
-    imagem: "/images/cursos/hermeneutica.jpg",
-    professor: "Prof. Pedro Costa",
-    cargaHoraria: "30 horas",
-    formato: "Híbrido - Presencial e Online",
-    precoPix: 320.00,
-    precoCartao: 350.00,
-    parcelasCartao: 3
-  },
-  "hermeneutica": {
-    id: "hermeneutica",
-    titulo: "Hermenêutica Bíblica",
-    descricao: "Aprenda princípios de interpretação bíblica para estudar as Escrituras com profundidade e fidelidade.",
-    duracao: "10 semanas",
-    nivel: "Intermediário",
-    dataInicio: "13 Jul 2026",
-    dataFim: "21 Set 2026",
-    imagem: "/images/cursos/hermeneutica.jpg",
-    professor: "Rev. Maria Santos",
-    cargaHoraria: "30 horas",
-    formato: "Híbrido - Segundas-feiras às 20h",
-    precoPix: 320.00,
-    precoCartao: 350.00,
-    parcelasCartao: 3
-  },
-  "antigo-testamento": {
-    id: "antigo-testamento",
-    titulo: "Antigo Testamento",
-    descricao: "Estudo aprofundado dos livros do Antigo Testamento, seu contexto histórico e sua relevância hoje.",
-    duracao: "16 semanas",
-    nivel: "Intermediário",
-    dataInicio: "28 Set 2026",
-    dataFim: "18 Jan 2027",
-    imagem: "/images/cursos/antigo-testamento.jpg",
-    professor: "Rev. Pedro Oliveira",
-    cargaHoraria: "48 horas",
-    formato: "Presencial - Sábados às 9h",
-    precoPix: 400.00,
-    precoCartao: 440.00,
-    parcelasCartao: 3
-  }
-};
+import { getCourse, type CourseData } from "@/lib/courses";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function InscricaoPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const courseId = params.id as string;
-  const course = cursos[courseId];
 
+  const [course, setCourse] = useState<CourseData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedPayment, setSelectedPayment] = useState<"pix" | "cartao" | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    async function fetchCourse() {
+      try {
+        const data = await getCourse(courseId);
+        setCourse(data);
+      } catch {
+        // Firestore unavailable
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCourse();
+  }, [courseId]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-navy-dark">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-cream-dark">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!course) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-navy">Curso não encontrado</h1>
-          <Link href="/cursos" className="mt-4 inline-block text-primary hover:text-primary-dark">
+          <Link href="/courses" className="mt-4 inline-block text-primary hover:text-primary-dark">
             ← Voltar para cursos
           </Link>
         </div>
@@ -129,31 +58,29 @@ export default function InscricaoPage() {
     );
   }
 
+  const totalPix = course.pricePix * quantity;
+  const totalCartao = course.priceCard * quantity;
+  const parcelaCartao = totalCartao / course.installments;
+
   const handlePayment = async () => {
-    if (!selectedPayment) return;
+    if (!selectedPayment || !user) return;
 
     setIsProcessing(true);
-    
-    // Simulate processing payment
-    setTimeout(() => {
-      // Save the purchase
-      const amount = selectedPayment === "pix" ? totalPix : totalCartao;
-      savePurchasedCourse({
-        courseId: course.id,
-        purchaseDate: new Date().toISOString(),
-        paymentMethod: selectedPayment,
-        amount: amount,
-        status: "paid"
-      });
 
-      // Redirect to dashboard
-      router.push("/dashboard");
-    }, 1500);
+    // Simulate processing delay
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    const amount = selectedPayment === "pix" ? totalPix : totalCartao;
+    await savePurchasedCourse(user.uid, {
+      courseId: course.id,
+      purchaseDate: new Date().toISOString(),
+      paymentMethod: selectedPayment,
+      amount: amount,
+      status: "paid",
+    });
+
+    router.push("/dashboard");
   };
-
-  const totalPix = course.precoPix * quantity;
-  const totalCartao = course.precoCartao * quantity;
-  const parcelaCartao = totalCartao / course.parcelasCartao;
 
   return (
     <div className="min-h-screen bg-navy-dark">
@@ -164,7 +91,7 @@ export default function InscricaoPage() {
       <div className="relative mx-auto max-w-6xl px-6 py-12">
         {/* Header */}
         <div className="mb-8">
-          <Link href={`/curso/${course.id}`} className="inline-flex items-center text-cream-dark hover:text-primary transition-colors">
+          <Link href={`/course/${course.id}`} className="inline-flex items-center text-cream-dark hover:text-primary transition-colors">
             <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -184,40 +111,40 @@ export default function InscricaoPage() {
                 <div className="flex items-start gap-4">
                   <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg">
                     <Image
-                      src={course.imagem}
-                      alt={course.titulo}
+                      src={course.image}
+                      alt={course.title}
                       fill
                       className="object-cover"
                     />
                   </div>
                   <div className="flex-1">
-                    <h2 className="mb-2 text-xl font-bold text-white">{course.titulo}</h2>
-                    <p className="mb-3 text-sm text-cream-dark">{course.descricao}</p>
+                    <h2 className="mb-2 text-xl font-bold text-white">{course.title}</h2>
+                    <p className="mb-3 text-sm text-cream-dark">{course.description}</p>
                     <div className="grid gap-2 text-xs text-cream-dark">
                       <div className="flex items-center gap-2">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span>{course.dataInicio} - {course.dataFim}</span>
+                        <span>{course.startDate} - {course.endDate}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>{course.duracao} • {course.cargaHoraria}</span>
+                        <span>{course.duration} • {course.totalHours}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        <span>{course.formato}</span>
+                        <span>{course.format}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <span>Professor: {course.professor}</span>
+                        <span>Professor: {course.instructor}</span>
                       </div>
                     </div>
                   </div>
@@ -347,7 +274,7 @@ export default function InscricaoPage() {
                         <span className="font-bold text-white">CARTÃO DE CRÉDITO</span>
                       </div>
                       <p className="mt-1 text-xs text-cream-dark">
-                        Em até {course.parcelasCartao}x R$ {parcelaCartao.toFixed(2)}
+                        Em até {course.installments}x R$ {parcelaCartao.toFixed(2)}
                       </p>
                       <p className="text-xs text-cream-dark">Sem juros</p>
                     </div>

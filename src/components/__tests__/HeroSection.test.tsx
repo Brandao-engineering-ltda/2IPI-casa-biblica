@@ -30,7 +30,7 @@ describe('HeroSection Component', () => {
     const explorarButton = screen.getByText('Explorar Cursos').closest('a')
     const saibaMaisButton = screen.getByText('Saiba Mais').closest('a')
     
-    expect(explorarButton).toHaveAttribute('href', '#cursos')
+    expect(explorarButton).toHaveAttribute('href', '#courses')
     expect(saibaMaisButton).toHaveAttribute('href', '#sobre')
   })
 
