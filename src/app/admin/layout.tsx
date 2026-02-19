@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,39 @@ const navItems = [
   { href: "/admin/settings", label: "Configuracoes", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
 ];
 
+function NavItem({ item, pathname }: { item: typeof navItems[number]; pathname: string }) {
+  const isActive =
+    item.href === "/admin"
+      ? pathname === "/admin"
+      : pathname.startsWith(item.href);
+
+  return (
+    <Link
+      href={item.href}
+      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "text-navy-light hover:bg-cream hover:text-navy"
+      }`}
+    >
+      <svg
+        className="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d={item.icon}
+        />
+      </svg>
+      {item.label}
+    </Link>
+  );
+}
+
 export default function AdminLayout({
   children,
 }: {
@@ -20,12 +53,20 @@ export default function AdminLayout({
   const router = useRouter();
   const { user, isAdmin, loading } = useAuth();
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login?redirect=/admin");
     }
   }, [loading, user, router]);
+
+  // Close sidebar on route change (React recommended pattern for derived state)
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setSidebarOpen(false);
+  }
 
   if (loading || !user) {
     return (
@@ -73,52 +114,52 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)]">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-navy-light/10 bg-white">
-        <div className="p-6">
-          <h2 className="text-lg font-bold text-navy">Admin</h2>
-          <p className="text-xs text-navy-light">Instituto Casa Biblica</p>
+    <div className="flex min-h-[calc(100vh-80px)] flex-col">
+      {/* Mobile top bar */}
+      <div className="flex items-center justify-between border-b border-navy-light/10 bg-white px-4 py-3 md:hidden">
+        <div>
+          <h2 className="text-sm font-bold text-navy">Admin</h2>
+          <p className="text-[10px] text-navy-light">Instituto Casa Biblica</p>
         </div>
-        <nav className="space-y-1 px-3">
-          {navItems.map((item) => {
-            const isActive =
-              item.href === "/admin"
-                ? pathname === "/admin"
-                : pathname.startsWith(item.href);
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="flex flex-col gap-1.5"
+          aria-label="Abrir menu admin"
+        >
+          <span className={`block h-0.5 w-6 bg-navy transition-transform ${sidebarOpen ? "translate-y-2 rotate-45" : ""}`} />
+          <span className={`block h-0.5 w-6 bg-navy transition-opacity ${sidebarOpen ? "opacity-0" : ""}`} />
+          <span className={`block h-0.5 w-6 bg-navy transition-transform ${sidebarOpen ? "-translate-y-2 -rotate-45" : ""}`} />
+        </button>
+      </div>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-navy-light hover:bg-cream hover:text-navy"
-                }`}
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d={item.icon}
-                  />
-                </svg>
-                {item.label}
-              </Link>
-            );
-          })}
+      {/* Mobile dropdown nav */}
+      {sidebarOpen && (
+        <nav className="border-b border-navy-light/10 bg-white px-4 py-3 md:hidden">
+          <div className="space-y-1">
+            {navItems.map((item) => (
+              <NavItem key={item.href} item={item} pathname={pathname} />
+            ))}
+          </div>
         </nav>
-      </aside>
+      )}
 
-      {/* Main Content */}
-      <main className="flex-1 bg-background p-8">{children}</main>
+      <div className="flex flex-1">
+        {/* Desktop sidebar */}
+        <aside className="hidden w-64 border-r border-navy-light/10 bg-white md:block">
+          <div className="p-6">
+            <h2 className="text-lg font-bold text-navy">Admin</h2>
+            <p className="text-xs text-navy-light">Instituto Casa Biblica</p>
+          </div>
+          <nav className="space-y-1 px-3">
+            {navItems.map((item) => (
+              <NavItem key={item.href} item={item} pathname={pathname} />
+            ))}
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 bg-background p-4 md:p-8">{children}</main>
+      </div>
     </div>
   );
 }

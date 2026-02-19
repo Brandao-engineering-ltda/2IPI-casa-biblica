@@ -146,6 +146,37 @@ describe('Admin Layout', () => {
     expect(links.length).toBeGreaterThan(0);
   });
 
+  it('renders mobile hamburger menu button', async () => {
+    mockUseAuth.mockReturnValue({
+      isAdmin: true,
+      loading: false,
+      user: { uid: '1' },
+      userProfile: null,
+      refreshProfile: jest.fn(),
+    });
+
+    render(
+      <AdminLayout>
+        <div>Child content</div>
+      </AdminLayout>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Child content')).toBeInTheDocument();
+    });
+
+    // Mobile hamburger menu button
+    const menuButton = screen.getByLabelText('Abrir menu admin');
+    expect(menuButton).toBeInTheDocument();
+
+    // Click to open mobile nav
+    fireEvent.click(menuButton);
+
+    // Nav items should now appear in mobile dropdown too
+    const allLinks = screen.getAllByRole('link');
+    expect(allLinks.length).toBeGreaterThan(4);
+  });
+
   it('shows loading spinner when loading', async () => {
     mockUseAuth.mockReturnValue({
       isAdmin: false,
@@ -237,10 +268,11 @@ describe('Admin Cursos Page', () => {
     render(<AdminCursosPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument();
+      // Appears in both desktop table and mobile cards
+      expect(screen.getAllByText('Fundamentos da Fé').length).toBeGreaterThanOrEqual(1);
     });
 
-    expect(screen.getByText('Teologia')).toBeInTheDocument();
+    expect(screen.getAllByText('Teologia').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows "Nenhum curso cadastrado" when empty', async () => {
@@ -269,12 +301,12 @@ describe('Admin Cursos Page', () => {
     render(<AdminCursosPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument();
+      expect(screen.getAllByText('Fundamentos da Fé').length).toBeGreaterThanOrEqual(1);
     });
 
-    expect(screen.getByText('Teologia')).toBeInTheDocument();
-    expect(screen.getByText(/Rev\. João/)).toBeInTheDocument();
-    expect(screen.getByText(/Dr\. Maria/)).toBeInTheDocument();
+    expect(screen.getAllByText('Teologia').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Rev\. João/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Dr\. Maria/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders StatusBadge with correct labels for each status', async () => {
@@ -293,12 +325,13 @@ describe('Admin Cursos Page', () => {
     render(<AdminCursosPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument();
+      // Desktop table + mobile cards render both views
+      expect(screen.getAllByText('Fundamentos da Fé').length).toBeGreaterThanOrEqual(1);
     });
 
-    expect(screen.getByText('Proximo')).toBeInTheDocument();
-    expect(screen.getByText('Em Breve')).toBeInTheDocument();
-    expect(screen.getByText('Em Andamento')).toBeInTheDocument();
+    expect(screen.getAllByText('Proximo').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Em Breve').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Em Andamento').length).toBeGreaterThanOrEqual(1);
   });
 
   it('toggles publish status when clicking "Sim"/"Nao" button', async () => {
@@ -308,11 +341,12 @@ describe('Admin Cursos Page', () => {
     render(<AdminCursosPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument();
+      expect(screen.getAllByText('Fundamentos da Fé').length).toBeGreaterThanOrEqual(1);
     });
 
     // mockCourses[0] has published: true, so its button says "Sim"
-    const simButton = screen.getByRole('button', { name: 'Sim' });
+    // Appears in both desktop table and mobile card
+    const simButton = screen.getAllByRole('button', { name: 'Sim' })[0];
     fireEvent.click(simButton);
 
     await waitFor(() => {
@@ -332,11 +366,12 @@ describe('Admin Cursos Page', () => {
     render(<AdminCursosPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Teologia')).toBeInTheDocument();
+      expect(screen.getAllByText('Teologia').length).toBeGreaterThanOrEqual(1);
     });
 
     // mockCourses[1] has published: false, so its button says "Nao"
-    const naoButton = screen.getByRole('button', { name: 'Nao' });
+    // Appears in both desktop table and mobile card
+    const naoButton = screen.getAllByRole('button', { name: 'Nao' })[0];
     fireEvent.click(naoButton);
 
     await waitFor(() => {
@@ -356,7 +391,7 @@ describe('Admin Cursos Page', () => {
     render(<AdminCursosPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument();
+      expect(screen.getAllByText('Fundamentos da Fé').length).toBeGreaterThanOrEqual(1);
     });
 
     // Click the first "Arquivar" button to open modal
@@ -383,7 +418,7 @@ describe('Admin Cursos Page', () => {
     render(<AdminCursosPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument();
+      expect(screen.getAllByText('Fundamentos da Fé').length).toBeGreaterThanOrEqual(1);
     });
 
     const arquivarButtons = screen.getAllByRole('button', { name: 'Arquivar' });
@@ -572,10 +607,11 @@ describe('Admin Enrollments Page', () => {
       expect(screen.getByText('Fundamentos da Fé')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('João Silva')).toBeInTheDocument();
-    expect(screen.getByText('joao@email.com')).toBeInTheDocument();
-    expect(screen.getByText('(11) 99999-0000')).toBeInTheDocument();
-    expect(screen.getByText('Pago')).toBeInTheDocument();
+    // User data appears in both desktop table and mobile cards
+    expect(screen.getAllByText('João Silva').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('joao@email.com').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('(11) 99999-0000').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Pago').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('1 aluno')).toBeInTheDocument();
   });
 
@@ -663,7 +699,8 @@ describe('Admin Enrollments Page', () => {
     render(<EnrollmentsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('João Silva')).toBeInTheDocument();
+      // User data appears in both desktop table and mobile cards
+      expect(screen.getAllByText('João Silva').length).toBeGreaterThanOrEqual(1);
     });
 
     // Click the course header to collapse
@@ -675,6 +712,6 @@ describe('Admin Enrollments Page', () => {
     // Click again to expand
     fireEvent.click(screen.getByText('Fundamentos da Fé'));
 
-    expect(screen.getByText('João Silva')).toBeInTheDocument();
+    expect(screen.getAllByText('João Silva').length).toBeGreaterThanOrEqual(1);
   });
 });

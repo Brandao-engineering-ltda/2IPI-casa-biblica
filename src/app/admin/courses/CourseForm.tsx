@@ -360,8 +360,8 @@ export default function CourseForm({ initialData, onSubmit, isNew }: CourseFormP
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-md">
-      <h2 className="mb-4 text-lg font-bold text-navy">{title}</h2>
+    <div className="rounded-2xl bg-white p-4 shadow-md sm:p-6">
+      <h2 className="mb-4 text-base font-bold text-navy sm:text-lg">{title}</h2>
       <div className="space-y-4">{children}</div>
     </div>
   );

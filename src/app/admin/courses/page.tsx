@@ -123,19 +123,19 @@ export default function AdminCursosPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-navy">Cursos</h1>
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:gap-0 sm:items-center sm:justify-between">
+        <h1 className="text-xl font-bold text-navy sm:text-2xl">Cursos</h1>
         <div className="flex items-center gap-3">
           <button
             onClick={handleSeed}
             disabled={seeding}
-            className="rounded-full border-2 border-navy-light/20 px-5 py-2 text-sm font-semibold text-navy-light transition-colors hover:border-navy hover:text-navy disabled:opacity-50"
+            className="rounded-full border-2 border-navy-light/20 px-4 py-2 text-xs font-semibold text-navy-light transition-colors hover:border-navy hover:text-navy disabled:opacity-50 sm:px-5 sm:text-sm"
           >
-            {seeding ? "Atualizando..." : "Re-seed Cursos Padrao"}
+            {seeding ? "Atualizando..." : "Re-seed"}
           </button>
           <Link
             href="/admin/courses/new"
-            className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+            className="rounded-full bg-primary px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-dark sm:px-6 sm:py-2.5 sm:text-sm"
           >
             + Novo Curso
           </Link>
@@ -154,88 +154,145 @@ export default function AdminCursosPage() {
           </button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl bg-white shadow-md">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-navy-light/10 bg-cream">
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
-                  Curso
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
-                  Publicado
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
-                  Nivel
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-light">
-                  Acoes
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {courses.map((course) => (
-                <tr
-                  key={course.id}
-                  className="border-b border-navy-light/5 transition-colors hover:bg-cream/50"
-                >
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-semibold text-navy">{course.title}</p>
-                      <p className="text-xs text-navy-light">{course.instructor}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={course.status} />
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleTogglePublish(course)}
-                      className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                        course.published
-                          ? "bg-green-100 text-green-700 hover:bg-green-200"
-                          : "bg-red-100 text-red-700 hover:bg-red-200"
-                      }`}
-                    >
-                      {course.published ? "Sim" : "Nao"}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-navy-light">{course.level}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link
-                        href={`/admin/courses/${course.id}`}
-                        className="rounded-lg px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
-                      >
-                        Editar
-                      </Link>
-                      <Link
-                        href={`/admin/courses/${course.id}/modules`}
-                        className="rounded-lg px-3 py-1.5 text-xs font-semibold text-navy-light transition-colors hover:bg-cream"
-                      >
-                        Modulos
-                      </Link>
-                      <Link
-                        href={`/admin/courses/${course.id}/history`}
-                        className="rounded-lg px-3 py-1.5 text-xs font-semibold text-navy-light transition-colors hover:bg-cream"
-                      >
-                        Historico
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(course)}
-                        className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-500 transition-colors hover:bg-red-50"
-                      >
-                        Arquivar
-                      </button>
-                    </div>
-                  </td>
+        <>
+          {/* Desktop table */}
+          <div className="hidden overflow-hidden rounded-2xl bg-white shadow-md md:block">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-navy-light/10 bg-cream">
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
+                    Curso
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
+                    Publicado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
+                    Nivel
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-light">
+                    Acoes
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {courses.map((course) => (
+                  <tr
+                    key={course.id}
+                    className="border-b border-navy-light/5 transition-colors hover:bg-cream/50"
+                  >
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="font-semibold text-navy">{course.title}</p>
+                        <p className="text-xs text-navy-light">{course.instructor}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={course.status} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => handleTogglePublish(course)}
+                        className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                          course.published
+                            ? "bg-green-100 text-green-700 hover:bg-green-200"
+                            : "bg-red-100 text-red-700 hover:bg-red-200"
+                        }`}
+                      >
+                        {course.published ? "Sim" : "Nao"}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-navy-light">{course.level}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/courses/${course.id}`}
+                          className="rounded-lg px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                        >
+                          Editar
+                        </Link>
+                        <Link
+                          href={`/admin/courses/${course.id}/modules`}
+                          className="rounded-lg px-3 py-1.5 text-xs font-semibold text-navy-light transition-colors hover:bg-cream"
+                        >
+                          Modulos
+                        </Link>
+                        <Link
+                          href={`/admin/courses/${course.id}/history`}
+                          className="rounded-lg px-3 py-1.5 text-xs font-semibold text-navy-light transition-colors hover:bg-cream"
+                        >
+                          Historico
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(course)}
+                          className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-500 transition-colors hover:bg-red-50"
+                        >
+                          Arquivar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {courses.map((course) => (
+              <div key={course.id} className="rounded-2xl bg-white p-4 shadow-md">
+                <div className="mb-3 flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-navy">{course.title}</p>
+                    <p className="text-xs text-navy-light">{course.instructor}</p>
+                  </div>
+                  <StatusBadge status={course.status} />
+                </div>
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-sm text-navy-light">{course.level}</span>
+                  <button
+                    onClick={() => handleTogglePublish(course)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                      course.published
+                        ? "bg-green-100 text-green-700 hover:bg-green-200"
+                        : "bg-red-100 text-red-700 hover:bg-red-200"
+                    }`}
+                  >
+                    {course.published ? "Sim" : "Nao"}
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 border-t border-navy-light/10 pt-3">
+                  <Link
+                    href={`/admin/courses/${course.id}`}
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                  >
+                    Editar
+                  </Link>
+                  <Link
+                    href={`/admin/courses/${course.id}/modules`}
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-navy-light transition-colors hover:bg-cream"
+                  >
+                    Modulos
+                  </Link>
+                  <Link
+                    href={`/admin/courses/${course.id}/history`}
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-navy-light transition-colors hover:bg-cream"
+                  >
+                    Historico
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(course)}
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-500 transition-colors hover:bg-red-50"
+                  >
+                    Arquivar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Modal */}

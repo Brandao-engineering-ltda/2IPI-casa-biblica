@@ -67,9 +67,9 @@ export default function ConfiguracoesPage() {
 
   return (
     <div>
-      <h1 className="mb-8 text-2xl font-bold text-navy">Configuracoes</h1>
+      <h1 className="mb-6 text-xl font-bold text-navy sm:mb-8 sm:text-2xl">Configuracoes</h1>
 
-      <div className="max-w-2xl rounded-2xl bg-white p-6 shadow-md">
+      <div className="max-w-2xl rounded-2xl bg-white p-4 shadow-md sm:p-6">
         <h2 className="mb-4 text-lg font-bold text-navy">Administradores</h2>
         <p className="mb-6 text-sm text-navy-light">
           Usuarios com estes e-mails terao acesso ao painel administrativo.
@@ -97,7 +97,7 @@ export default function ConfiguracoesPage() {
         </div>
 
         {/* Add Email */}
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row">
           <input
             type="email"
             value={newEmail}

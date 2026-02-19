@@ -94,21 +94,21 @@ export default function ModulosPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
           <Link
             href="/admin/courses"
-            className="text-sm text-navy-light hover:text-primary transition-colors"
+            className="self-start text-sm text-navy-light hover:text-primary transition-colors sm:self-auto"
           >
             ← Voltar
           </Link>
-          <h1 className="text-2xl font-bold text-navy">
+          <h1 className="text-xl font-bold text-navy sm:text-2xl">
             Modulos: {course.title}
           </h1>
         </div>
         <button
           onClick={() => setShowNewModule(true)}
-          className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+          className="self-start rounded-full bg-primary px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-dark sm:self-auto sm:px-6 sm:py-2.5 sm:text-sm"
         >
           + Novo Modulo
         </button>
@@ -126,7 +126,7 @@ export default function ModulosPage() {
       {/* Modules List */}
       <div className="space-y-6">
         {modules.map((mod) => (
-          <div key={mod.id} className="rounded-2xl bg-white p-6 shadow-md">
+          <div key={mod.id} className="rounded-2xl bg-white p-4 shadow-md sm:p-6">
             {/* Module Header */}
             {editingModule?.id === mod.id ? (
               <ModuleForm
@@ -170,7 +170,7 @@ export default function ModulosPage() {
                       onCancel={() => setEditingLesson(null)}
                     />
                   ) : (
-                    <div className="flex items-center justify-between rounded-lg bg-cream px-4 py-3">
+                    <div className="flex flex-col gap-2 rounded-lg bg-cream px-4 py-3 sm:flex-row sm:gap-0 sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         <TypeIcon type={lesson.type} />
                         <div>
@@ -178,7 +178,7 @@ export default function ModulosPage() {
                           <p className="text-xs text-navy-light">{lesson.duration} • {lesson.type}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
                         <button
                           onClick={() => setEditingLesson({ moduleId: mod.id, lesson })}
                           className="rounded px-2 py-1 text-xs text-primary hover:bg-primary/10"

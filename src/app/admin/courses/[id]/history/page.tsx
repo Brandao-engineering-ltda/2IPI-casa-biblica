@@ -71,14 +71,14 @@ export default function HistoricoPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center gap-4">
+      <div className="mb-6 flex flex-col gap-1 sm:mb-8 sm:flex-row sm:items-center sm:gap-4">
         <Link
           href="/admin/courses"
-          className="text-sm text-navy-light hover:text-primary transition-colors"
+          className="self-start text-sm text-navy-light hover:text-primary transition-colors sm:self-auto"
         >
           ← Voltar
         </Link>
-        <h1 className="text-2xl font-bold text-navy">
+        <h1 className="text-xl font-bold text-navy sm:text-2xl">
           Historico: {course.title}
         </h1>
       </div>
@@ -104,9 +104,9 @@ export default function HistoricoPage() {
             return (
               <div
                 key={entry.id}
-                className="rounded-2xl bg-white p-6 shadow-md"
+                className="rounded-2xl bg-white p-4 shadow-md sm:p-6"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-0 sm:items-start sm:justify-between">
                   <div>
                     <p className="font-semibold text-navy">{entry.changeDescription}</p>
                     <p className="mt-1 text-sm text-navy-light">
@@ -116,7 +116,7 @@ export default function HistoricoPage() {
                   <button
                     onClick={() => handleRestore(entry.id)}
                     disabled={restoring === entry.id}
-                    className="rounded-full border-2 border-primary px-4 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-50"
+                    className="self-start rounded-full border-2 border-primary px-4 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-50"
                   >
                     {restoring === entry.id ? "Restaurando..." : "Restaurar"}
                   </button>
@@ -124,7 +124,7 @@ export default function HistoricoPage() {
 
                 {/* Snapshot preview */}
                 {entry.snapshot && (
-                  <div className="mt-4 rounded-lg bg-cream p-4">
+                  <div className="mt-4 rounded-lg bg-cream p-3 sm:p-4">
                     <p className="mb-2 text-xs font-semibold uppercase text-navy-light">Dados nesta versao:</p>
                     <div className="grid gap-2 text-xs text-navy-light sm:grid-cols-2">
                       {entry.snapshot.title && (
