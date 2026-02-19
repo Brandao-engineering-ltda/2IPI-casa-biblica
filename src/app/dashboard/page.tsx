@@ -1,147 +1,116 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { DashboardSkeleton } from "@/components/Skeleton";
 import { getPurchasedCourses, getCompletedLessons } from "@/lib/storage";
 import { useAuth } from "@/contexts/AuthContext";
-import { getTotalLessons, coursesContent } from "@/lib/courseContent";
+import {
+  getPublishedCourses,
+  getCourseModules,
+  type CourseData,
+} from "@/lib/courses";
 
-type Status = "em-andamento" | "proximo" | "em-breve";
 type CourseProgress = "not-started" | "in-progress" | "completed";
 
-interface Course {
-  id: string;
-  titulo: string;
-  descricao: string;
-  duracao: string;
-  nivel: string;
-  dataInicio: string;
-  dataFim: string;
-  status: Status;
-  imagem: string;
-}
-
-interface UserCourse extends Course {
+interface UserCourse extends CourseData {
   progress: CourseProgress;
   progressPercentage: number;
   enrolledAt: string;
   isPaid?: boolean;
 }
 
-// Sample data - replace with actual API calls
-const allCourses: Record<string, Course> = {
-  "fundamentos-da-fe": {
-    id: "fundamentos-da-fe",
-    titulo: "Fundamentos da Fé",
-    descricao:
-      "Estudo das doutrinas essenciais da fé cristã reformada. Base sólida para o crescimento espiritual.",
-    duracao: "8 semanas",
-    nivel: "Iniciante",
-    dataInicio: "11 Mai 2026",
-    dataFim: "6 Jul 2026",
-    status: "proximo",
-    imagem: "/images/cursos/fundamentos-da-fe.jpg",
-  },
-  "teologia-sistematica": {
-    id: "teologia-sistematica",
-    titulo: "Teologia Sistemática",
-    descricao:
-      "Estudo aprofundado das principais doutrinas cristãs de forma organizada e sistemática.",
-    duracao: "12 semanas",
-    nivel: "Intermediário",
-    dataInicio: "14 Abr 2026",
-    dataFim: "6 Jul 2026",
-    status: "proximo",
-    imagem: "/images/cursos/panorama-biblico.jpg",
-  },
-  "hermeneutica-biblica": {
-    id: "hermeneutica-biblica",
-    titulo: "Hermenêutica Bíblica",
-    descricao:
-      "Princípios e métodos para interpretação correta das Escrituras Sagradas.",
-    duracao: "10 semanas",
-    nivel: "Intermediário",
-    dataInicio: "20 Jun 2026",
-    dataFim: "29 Ago 2026",
-    status: "em-breve",
-    imagem: "/images/cursos/hermeneutica.jpg",
-  },
-  "hermeneutica": {
-    id: "hermeneutica",
-    titulo: "Hermenêutica Bíblica",
-    descricao:
-      "Aprenda princípios de interpretação bíblica para estudar as Escrituras com profundidade e fidelidade.",
-    duracao: "10 semanas",
-    nivel: "Intermediário",
-    dataInicio: "13 Jul 2026",
-    dataFim: "21 Set 2026",
-    status: "em-breve",
-    imagem: "/images/cursos/hermeneutica.jpg",
-  },
-  "antigo-testamento": {
-    id: "antigo-testamento",
-    titulo: "Antigo Testamento",
-    descricao:
-      "Estudo aprofundado dos livros do Antigo Testamento, seu contexto histórico e sua relevância hoje.",
-    duracao: "16 semanas",
-    nivel: "Intermediário",
-    dataInicio: "28 Set 2026",
-    dataFim: "18 Jan 2027",
-    status: "em-breve",
-    imagem: "/images/cursos/antigo-testamento.jpg",
-  },
-};
-
-const upcomingCourses: Course[] = Object.values(allCourses);
-
-function calculateCourseProgress(courseId: string): { progress: CourseProgress; percentage: number } {
-  const total = getTotalLessons(courseId);
-  if (total === 0) return { progress: "not-started", percentage: 0 };
-
-  const completed = getCompletedLessons(courseId);
-  const completedCount = completed.size;
-
-  if (completedCount === 0) return { progress: "not-started", percentage: 0 };
-  if (completedCount >= total) return { progress: "completed", percentage: 100 };
-  return { progress: "in-progress", percentage: Math.round((completedCount / total) * 100) };
-}
-
 export default function DashboardPage() {
+  const router = useRouter();
   const { user, userProfile, loading: authLoading } = useAuth();
   const [certificateCourse, setCertificateCourse] = useState<UserCourse | null>(null);
+  const [allCourses, setAllCourses] = useState<Record<string, CourseData>>({});
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [userCourses, setUserCourses] = useState<UserCourse[]>([]);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
 
   // Derive user name from auth state
-  const fullName = userProfile?.nomeCompleto || user?.displayName || "";
+  const fullName = userProfile?.fullName || user?.displayName || "";
   const userName = fullName ? fullName.split(" ")[0] : "";
 
-  // Derive courses from localStorage (synchronous)
-  const { userCourses, enrolledCourseIds } = useMemo(() => {
-    if (authLoading) return { userCourses: [] as UserCourse[], enrolledCourseIds: new Set<string>() };
+  // Fetch courses from Firestore
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const courses = await getPublishedCourses();
+        const coursesMap: Record<string, CourseData> = {};
+        for (const course of courses) {
+          coursesMap[course.id] = course;
+        }
+        setAllCourses(coursesMap);
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+      } finally {
+        setCoursesLoading(false);
+      }
+    }
+    fetchCourses();
+  }, []);
 
-    const purchases = getPurchasedCourses();
-    const courses: UserCourse[] = purchases
-      .filter((purchase) => allCourses[purchase.courseId])
-      .map((purchase) => {
+  // Build user courses once both auth and courses are loaded
+  useEffect(() => {
+    if (authLoading || coursesLoading || !user) return;
+
+    async function buildUserCourses() {
+      const purchases = await getPurchasedCourses(user!.uid);
+      const ids = new Set(purchases.map((p) => p.courseId));
+      setEnrolledCourseIds(ids);
+
+      const courses: UserCourse[] = [];
+      for (const purchase of purchases) {
         const courseData = allCourses[purchase.courseId];
-        const { progress, percentage } = calculateCourseProgress(purchase.courseId);
-        return {
+        if (!courseData) continue;
+
+        let totalLessons = 0;
+        try {
+          const modules = await getCourseModules(purchase.courseId);
+          totalLessons = modules.reduce((sum, m) => sum + m.lessons.length, 0);
+        } catch {
+          // modules unavailable
+        }
+
+        const completed = await getCompletedLessons(user!.uid, purchase.courseId);
+        const completedCount = completed.size;
+
+        let progress: CourseProgress = "not-started";
+        let percentage = 0;
+        if (totalLessons > 0 && completedCount > 0) {
+          if (completedCount >= totalLessons) {
+            progress = "completed";
+            percentage = 100;
+          } else {
+            progress = "in-progress";
+            percentage = Math.round((completedCount / totalLessons) * 100);
+          }
+        }
+
+        courses.push({
           ...courseData,
           progress,
           progressPercentage: percentage,
-          enrolledAt: new Date(purchase.purchaseDate).toLocaleDateString('pt-BR'),
+          enrolledAt: new Date(purchase.purchaseDate).toLocaleDateString("pt-BR"),
           isPaid: true,
-        };
-      });
+        });
+      }
+      setUserCourses(courses);
+    }
+    buildUserCourses();
+  }, [authLoading, coursesLoading, allCourses, user]);
 
-    return {
-      userCourses: courses,
-      enrolledCourseIds: new Set(purchases.map(p => p.courseId)),
-    };
-  }, [authLoading]);
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login?redirect=/dashboard");
+    }
+  }, [authLoading, user, router]);
 
-  if (authLoading) {
+  if (authLoading || !user || coursesLoading) {
     return <DashboardSkeleton />;
   }
 
@@ -257,7 +226,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {upcomingCourses.filter((course) => !enrolledCourseIds.has(course.id)).length === 0 ? (
+          {Object.values(allCourses).filter((course) => !enrolledCourseIds.has(course.id)).length === 0 ? (
             <div className="rounded-2xl border-2 border-dashed border-navy-light/20 bg-white p-12 text-center">
               <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-cream">
                 <svg
@@ -283,19 +252,15 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {upcomingCourses
-                .filter((course) => !enrolledCourseIds.has(course.id)) // Filter out purchased courses
-                .map((course) => {
-                  const isEnrolled = enrolledCourseIds.has(course.id);
-
-                  return (
-                    <AvailableCourseCard
-                      key={course.id}
-                      course={course}
-                      isEnrolled={isEnrolled}
-                    />
-                  );
-                })}
+              {Object.values(allCourses)
+                .filter((course) => !enrolledCourseIds.has(course.id))
+                .map((course) => (
+                  <AvailableCourseCard
+                    key={course.id}
+                    course={course}
+                    isEnrolled={false}
+                  />
+                ))}
             </div>
           )}
         </div>
@@ -327,15 +292,15 @@ function UserCourseCard({ course, onViewCertificate }: { course: UserCourse; onV
   }[course.progress];
 
   // If course is paid, link to content page, otherwise to preview page
-  const courseLink = course.isPaid ? `/curso/${course.id}/conteudo` : `/curso/${course.id}`;
+  const courseLink = course.isPaid ? `/course/${course.id}/content` : `/course/${course.id}`;
 
   return (
     <div className="group overflow-hidden rounded-2xl border border-navy-light/10 bg-white shadow-md transition-all hover:shadow-xl">
       <Link href={courseLink} className="block">
         <div className="relative h-48 overflow-hidden bg-navy">
           <Image
-            src={course.imagem}
-            alt={course.titulo}
+            src={course.image}
+            alt={course.title}
             fill
             className="object-cover opacity-90 transition-transform duration-500 group-hover:scale-105"
           />
@@ -354,7 +319,7 @@ function UserCourseCard({ course, onViewCertificate }: { course: UserCourse; onV
         <div className="p-6">
           <div className="mb-3 flex items-center justify-between gap-2">
             <span className="rounded-full bg-cream px-3 py-1 text-xs font-semibold text-navy">
-              {course.nivel}
+              {course.level}
             </span>
             <div className="flex items-center gap-2">
               {course.isPaid && (
@@ -369,7 +334,7 @@ function UserCourseCard({ course, onViewCertificate }: { course: UserCourse; onV
           </div>
 
           <h3 className="mb-2 text-xl font-bold text-navy">
-            {course.titulo}
+            {course.title}
           </h3>
 
           {(course.progress === "in-progress" || course.progress === "completed") && (
@@ -399,7 +364,7 @@ function UserCourseCard({ course, onViewCertificate }: { course: UserCourse; onV
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span>{course.duracao}</span>
+              <span>{course.duration}</span>
             </div>
             <div className="flex items-center gap-1">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -410,7 +375,7 @@ function UserCourseCard({ course, onViewCertificate }: { course: UserCourse; onV
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <span>{course.dataInicio}</span>
+              <span>{course.startDate}</span>
             </div>
           </div>
 
@@ -449,7 +414,7 @@ function AvailableCourseCard({
   course,
   isEnrolled,
 }: {
-  course: Course;
+  course: CourseData;
   isEnrolled: boolean;
 }) {
   const statusInfo = {
@@ -460,11 +425,11 @@ function AvailableCourseCard({
 
   return (
     <div className="group overflow-hidden rounded-2xl border border-navy-light/10 bg-white shadow-md transition-all hover:shadow-xl">
-      <Link href={`/curso/${course.id}`} className="block">
+      <Link href={`/course/${course.id}`} className="block">
         <div className="relative h-48 overflow-hidden bg-navy">
           <Image
-            src={course.imagem}
-            alt={course.titulo}
+            src={course.image}
+            alt={course.title}
             fill
             className="object-cover opacity-90 transition-transform duration-500 group-hover:scale-105"
           />
@@ -478,15 +443,15 @@ function AvailableCourseCard({
 
         <div className="p-6">
           <span className="mb-3 inline-block rounded-full bg-cream px-3 py-1 text-xs font-semibold text-navy">
-            {course.nivel}
+            {course.level}
           </span>
 
           <h3 className="mb-2 text-xl font-bold text-navy">
-            {course.titulo}
+            {course.title}
           </h3>
 
           <p className="mb-4 line-clamp-2 text-sm text-navy-light">
-            {course.descricao}
+            {course.description}
           </p>
 
           <div className="mb-4 flex flex-wrap gap-3 text-sm text-navy-light">
@@ -499,7 +464,7 @@ function AvailableCourseCard({
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span>{course.duracao}</span>
+              <span>{course.duration}</span>
             </div>
             <div className="flex items-center gap-1">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -510,7 +475,7 @@ function AvailableCourseCard({
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <span>{course.dataInicio}</span>
+              <span>{course.startDate}</span>
             </div>
           </div>
         </div>
@@ -518,7 +483,7 @@ function AvailableCourseCard({
 
       <div className="px-6 pb-6">
         <Link
-          href={isEnrolled ? "#" : `/curso/${course.id}/inscricao`}
+          href={isEnrolled ? "#" : `/course/${course.id}/enrollment`}
           onClick={(e) => {
             if (isEnrolled) {
               e.preventDefault();
@@ -546,7 +511,6 @@ function CertificateModal({
   userName: string;
   onClose: () => void;
 }) {
-  const courseContent = coursesContent[course.id];
   const completionDate = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",
@@ -624,11 +588,11 @@ function CertificateModal({
                   concluiu com exito o curso
                 </p>
                 <p className="mb-4 text-xl font-bold text-primary sm:text-2xl">
-                  {course.titulo}
+                  {course.title}
                 </p>
                 <p className="text-sm text-navy-light">
-                  com carga horaria de <span className="font-semibold text-navy">{course.duracao}</span>,
-                  ministrado pelo(a) <span className="font-semibold text-navy">{courseContent?.professor || "professor"}</span>.
+                  com carga horaria de <span className="font-semibold text-navy">{course.duration}</span>,
+                  ministrado pelo(a) <span className="font-semibold text-navy">{course.instructor || "professor"}</span>.
                 </p>
               </div>
 
@@ -643,7 +607,7 @@ function CertificateModal({
               <div className="flex items-end justify-around gap-8">
                 <div className="flex-1 text-center">
                   <div className="mb-2 border-b border-navy-light/30 pb-1">
-                    <p className="text-sm italic text-navy-light">{courseContent?.professor || "Professor"}</p>
+                    <p className="text-sm italic text-navy-light">{course.instructor || "Professor"}</p>
                   </div>
                   <p className="text-xs text-navy-light/70">Professor(a)</p>
                 </div>

@@ -11,16 +11,13 @@ import { useAuth } from "@/contexts/AuthContext";
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   const isLoggedIn = !!user;
 
   // Show nav links only on home page
   const showNavLinks = pathname === "/";
-  // Show login button only on home page
-  const showLoginButton = pathname === "/";
-  // Show logout button on dashboard and other authenticated pages
-  const showLogoutButton = pathname === "/dashboard";
+  const isOnAdmin = pathname.startsWith("/admin");
 
   // Determine logo link based on login status
   const logoHref = isLoggedIn ? "/dashboard" : "/";
@@ -38,7 +35,15 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-navy shadow-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <Link href={logoHref} className="flex items-center gap-3">
+        <Link
+          href={logoHref}
+          onClick={() => {
+            if (pathname === logoHref) {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+          className="flex items-center gap-3"
+        >
           <Image
             src="/logo-3d.png"
             alt="Logo 2ª IPI de Maringá"
@@ -60,7 +65,7 @@ export function Header() {
           {showNavLinks && (
             <>
               <Link
-                href="/#cursos"
+                href="/#courses"
                 className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
               >
                 Cursos
@@ -79,21 +84,40 @@ export function Header() {
               </Link>
             </>
           )}
-          {showLoginButton && (
-            <Link
-              href="/login"
-              className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
-            >
-              Entrar
-            </Link>
-          )}
-          {showLogoutButton && (
-            <button
-              onClick={handleLogout}
-              className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
-            >
-              Sair
-            </button>
+          {isLoggedIn ? (
+            <>
+              {isAdmin && !isOnAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                >
+                  Admin
+                </Link>
+              )}
+              {isAdmin && isOnAdmin && (
+                <Link
+                  href="/dashboard"
+                  className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                >
+                  Dashboard
+                </Link>
+              )}
+              <button
+                onClick={handleLogout}
+                className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+              >
+                Sair
+              </button>
+            </>
+          ) : (
+            showNavLinks && (
+              <Link
+                href="/login"
+                className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+              >
+                Entrar
+              </Link>
+            )
           )}
         </nav>
 
@@ -120,7 +144,7 @@ export function Header() {
             {showNavLinks && (
               <>
                 <Link
-                  href="/#cursos"
+                  href="/#courses"
                   onClick={() => setMenuOpen(false)}
                   className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
                 >
@@ -142,25 +166,46 @@ export function Header() {
                 </Link>
               </>
             )}
-            {showLoginButton && (
-              <Link
-                href="/login"
-                onClick={() => setMenuOpen(false)}
-                className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
-              >
-                Entrar
-              </Link>
-            )}
-            {showLogoutButton && (
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  handleLogout();
-                }}
-                className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
-              >
-                Sair
-              </button>
+            {isLoggedIn ? (
+              <>
+                {isAdmin && !isOnAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMenuOpen(false)}
+                    className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                  >
+                    Admin
+                  </Link>
+                )}
+                {isAdmin && isOnAdmin && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                  >
+                    Dashboard
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+                >
+                  Sair
+                </button>
+              </>
+            ) : (
+              showNavLinks && (
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full border-2 border-cream-dark/30 px-6 py-2 text-center text-sm font-semibold text-cream transition-colors hover:border-cream hover:text-white"
+                >
+                  Entrar
+                </Link>
+              )
             )}
           </div>
         </nav>

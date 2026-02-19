@@ -24,7 +24,7 @@ describe('Footer Component', () => {
   it('quick links point to correct URLs', () => {
     const { container } = render(<Footer />)
     
-    const cursosLink = container.querySelector('a[href="/#cursos"]')
+    const cursosLink = container.querySelector('a[href="/#courses"]')
     const sobreLink = container.querySelector('a[href="/#sobre"]')
     const inscrevaLink = container.querySelector('a[href="/login"]')
     

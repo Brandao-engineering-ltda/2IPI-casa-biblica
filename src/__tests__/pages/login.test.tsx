@@ -12,12 +12,16 @@ jest.mock('@/lib/firebase', () => ({
   auth: {},
   googleProvider: {},
   signInWithPopup: jest.fn(),
-  signInWithEmailAndPassword: jest.fn(() => Promise.resolve({ user: { uid: '123' } })),
+  signInWithEmailAndPassword: jest.fn(() => Promise.resolve({ user: { uid: '123', email: 'test@example.com' } })),
   sendPasswordResetEmail: jest.fn(() => Promise.resolve()),
 }))
 
 jest.mock('@/lib/storage', () => ({
   saveUserProfile: jest.fn(() => Promise.resolve()),
+}))
+
+jest.mock('@/lib/admin', () => ({
+  isAdminEmail: jest.fn(() => Promise.resolve(false)),
 }))
 
 describe('LoginPage', () => {
@@ -130,7 +134,7 @@ describe('LoginPage', () => {
 
       await waitFor(() => {
         expect(saveUserProfile).toHaveBeenCalledWith('google-uid-123', {
-          nomeCompleto: 'Maria Silva',
+          fullName: 'Maria Silva',
           email: 'maria@gmail.com',
           photoURL: 'https://photo.url/maria.jpg',
           authProvider: 'google',
@@ -162,7 +166,7 @@ describe('LoginPage', () => {
 
       await waitFor(() => {
         expect(saveUserProfile).toHaveBeenCalledWith('google-uid-456', {
-          nomeCompleto: 'Usuário Google',
+          fullName: 'Usuário Google',
           email: '',
           photoURL: '',
           authProvider: 'google',

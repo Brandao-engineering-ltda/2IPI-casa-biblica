@@ -104,7 +104,7 @@ describe('Header Component', () => {
     it('should have correct href for nav links', () => {
       render(<Header />);
 
-      expect(screen.getByRole('link', { name: /cursos/i })).toHaveAttribute('href', '/#cursos');
+      expect(screen.getByRole('link', { name: /cursos/i })).toHaveAttribute('href', '/#courses');
       expect(screen.getByRole('link', { name: /sobre/i })).toHaveAttribute('href', '/#sobre');
       expect(screen.getByRole('link', { name: /contato/i })).toHaveAttribute('href', '/#contato');
     });
@@ -113,6 +113,7 @@ describe('Header Component', () => {
   describe('Navigation Links - Dashboard', () => {
     beforeEach(() => {
       (usePathname as jest.Mock).mockReturnValue('/dashboard');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: false, userProfile: null, loading: false, refreshProfile: jest.fn() });
     });
 
     it('should hide nav links on dashboard', () => {
@@ -148,6 +149,38 @@ describe('Header Component', () => {
     });
   });
 
+  describe('Admin/Dashboard Link Swap', () => {
+    it('should show Admin link on dashboard for admin users', () => {
+      (usePathname as jest.Mock).mockReturnValue('/dashboard');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: true, userProfile: null, loading: false, refreshProfile: jest.fn() });
+
+      render(<Header />);
+
+      expect(screen.getByRole('link', { name: /^admin$/i })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /^dashboard$/i })).not.toBeInTheDocument();
+    });
+
+    it('should show Dashboard link on admin pages for admin users', () => {
+      (usePathname as jest.Mock).mockReturnValue('/admin');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: true, userProfile: null, loading: false, refreshProfile: jest.fn() });
+
+      render(<Header />);
+
+      expect(screen.getByRole('link', { name: /^dashboard$/i })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /^admin$/i })).not.toBeInTheDocument();
+    });
+
+    it('should show Dashboard link on admin sub-pages', () => {
+      (usePathname as jest.Mock).mockReturnValue('/admin/courses');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: true, userProfile: null, loading: false, refreshProfile: jest.fn() });
+
+      render(<Header />);
+
+      expect(screen.getByRole('link', { name: /^dashboard$/i })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /^admin$/i })).not.toBeInTheDocument();
+    });
+  });
+
   describe('Navigation Links - Other Pages', () => {
     it('should hide nav links on login page', () => {
       (usePathname as jest.Mock).mockReturnValue('/login');
@@ -160,7 +193,7 @@ describe('Header Component', () => {
     });
 
     it('should hide nav links on registration page', () => {
-      (usePathname as jest.Mock).mockReturnValue('/registro');
+      (usePathname as jest.Mock).mockReturnValue('/register');
 
       render(<Header />);
 
@@ -170,7 +203,7 @@ describe('Header Component', () => {
     });
 
     it('should hide nav links on course pages', () => {
-      (usePathname as jest.Mock).mockReturnValue('/curso/fundamentos-da-fe');
+      (usePathname as jest.Mock).mockReturnValue('/course/fundamentos-da-fe');
 
       render(<Header />);
 
@@ -180,7 +213,7 @@ describe('Header Component', () => {
     });
 
     it('should hide buttons on course content pages', () => {
-      (usePathname as jest.Mock).mockReturnValue('/curso/fundamentos-da-fe/conteudo');
+      (usePathname as jest.Mock).mockReturnValue('/course/fundamentos-da-fe/content');
 
       render(<Header />);
 
@@ -245,6 +278,7 @@ describe('Header Component', () => {
 
     it('should hide nav links in mobile menu on dashboard', () => {
       (usePathname as jest.Mock).mockReturnValue('/dashboard');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: false, userProfile: null, loading: false, refreshProfile: jest.fn() });
 
       render(<Header />);
 
@@ -258,6 +292,7 @@ describe('Header Component', () => {
 
     it('should show logout in mobile menu on dashboard', () => {
       (usePathname as jest.Mock).mockReturnValue('/dashboard');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: false, userProfile: null, loading: false, refreshProfile: jest.fn() });
 
       render(<Header />);
 
@@ -270,6 +305,7 @@ describe('Header Component', () => {
 
     it('should close menu and clear data on mobile logout', async () => {
       (usePathname as jest.Mock).mockReturnValue('/dashboard');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: false, userProfile: null, loading: false, refreshProfile: jest.fn() });
 
       render(<Header />);
 
@@ -357,6 +393,7 @@ describe('Header Component', () => {
   describe('Mobile Logout Button', () => {
     it('should call signOut and clearLocalData when mobile logout is clicked', async () => {
       (usePathname as jest.Mock).mockReturnValue('/dashboard');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: false, userProfile: null, loading: false, refreshProfile: jest.fn() });
 
       const { signOut: mockSignOut } = require('@/lib/firebase');
 
@@ -380,6 +417,7 @@ describe('Header Component', () => {
 
     it('should close mobile menu when mobile logout is clicked', async () => {
       (usePathname as jest.Mock).mockReturnValue('/dashboard');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: false, userProfile: null, loading: false, refreshProfile: jest.fn() });
 
       render(<Header />);
 
@@ -401,6 +439,7 @@ describe('Header Component', () => {
   describe('Logout - handleLogout function', () => {
     it('should call signOut with auth and then clearLocalData on desktop logout', async () => {
       (usePathname as jest.Mock).mockReturnValue('/dashboard');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: false, userProfile: null, loading: false, refreshProfile: jest.fn() });
 
       const firebase = require('@/lib/firebase');
 
@@ -417,6 +456,7 @@ describe('Header Component', () => {
 
     it('should still clear local data when signOut rejects (error path)', async () => {
       (usePathname as jest.Mock).mockReturnValue('/dashboard');
+      mockUseAuth.mockReturnValue({ user: { uid: '123' }, isAdmin: false, userProfile: null, loading: false, refreshProfile: jest.fn() });
 
       const firebase = require('@/lib/firebase');
       firebase.signOut.mockRejectedValueOnce(new Error('Auth network error'));
