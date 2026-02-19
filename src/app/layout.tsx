@@ -5,7 +5,7 @@ import { ClientProviders } from "@/components/ClientProviders";
 export const metadata: Metadata = {
   title: "Instituto Casa Bíblica | Somos Casa",
   description:
-    "Cursos bíblicos da Segunda Igreja Presbiteriana Independente de Maringá. Somos Casa.",
+    "Cursos bíblicos da Segunda Igreja Presbiteriana Independente de Maringá. Somos Casa. ",
 };
 
 export default function RootLayout({
@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
