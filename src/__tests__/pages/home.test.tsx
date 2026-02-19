@@ -1,3 +1,4 @@
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 import Home from '../../app/page'
 
@@ -20,6 +21,10 @@ jest.mock('@/components/AboutSection', () => ({
 
 jest.mock('@/components/CTASection', () => ({
   CTASection: () => <div data-testid="cta-section">CTA</div>,
+}))
+
+jest.mock('@/components/FadeInSection', () => ({
+  FadeInSection: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
 describe('Home Page', () => {
