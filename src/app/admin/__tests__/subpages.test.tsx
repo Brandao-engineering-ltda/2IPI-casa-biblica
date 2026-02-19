@@ -34,6 +34,7 @@ jest.mock('@/lib/courses', () => ({
   deleteModule: jest.fn(() => Promise.resolve()),
   saveLesson: jest.fn(() => Promise.resolve()),
   deleteLesson: jest.fn(() => Promise.resolve()),
+  isoToPortugueseDate: jest.fn((iso: string) => iso),
 }));
 
 import NovoCursoPage from '@/app/admin/courses/new/page';
@@ -138,6 +139,45 @@ describe('Admin Subpages', () => {
       await waitFor(() => {
         expect(screen.getByText(/ID e Titulo sao obrigatorios/i)).toBeInTheDocument();
       });
+    });
+
+    it('shows error when changeDescription is empty in edit mode', async () => {
+      render(<CourseForm onSubmit={jest.fn()} initialData={mockCourse} />);
+      const form = screen.getByRole('button', { name: /salvar alteracoes/i }).closest('form')!;
+      fireEvent.submit(form);
+
+      await waitFor(() => {
+        expect(screen.getByText(/descreva as alteracoes/i)).toBeInTheDocument();
+      });
+    });
+
+    it('shows error message when onSubmit rejects', async () => {
+      const mockSubmit = jest.fn(() => Promise.reject(new Error('fail')));
+      render(<CourseForm onSubmit={mockSubmit} isNew />);
+
+      const idInput = screen.getByPlaceholderText('ex: fundamentos-da-fe');
+      const titleInput = screen.getByPlaceholderText('Nome do curso');
+      fireEvent.change(idInput, { target: { value: 'test' } });
+      fireEvent.change(titleInput, { target: { value: 'Test' } });
+      fireEvent.click(screen.getByRole('button', { name: /criar curso/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/erro ao salvar/i)).toBeInTheDocument();
+      });
+    });
+
+    it('updates start date and end date fields', () => {
+      render(<CourseForm onSubmit={jest.fn()} isNew />);
+
+      const dateInputs = document.querySelectorAll('input[type="date"]');
+      const startDate = dateInputs[0] as HTMLInputElement;
+      const endDate = dateInputs[1] as HTMLInputElement;
+
+      fireEvent.change(startDate, { target: { value: '2026-05-11' } });
+      expect(startDate.value).toBe('2026-05-11');
+
+      fireEvent.change(endDate, { target: { value: '2026-07-06' } });
+      expect(endDate.value).toBe('2026-07-06');
     });
   });
 

@@ -49,10 +49,10 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="mb-8 text-2xl font-bold text-navy">Painel Administrativo</h1>
+      <h1 className="mb-6 text-xl font-bold text-navy sm:mb-8 sm:text-2xl">Painel Administrativo</h1>
 
       {/* Stats Cards */}
-      <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 sm:mb-8 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
         <StatCard label="Total de Cursos" value={courses.length} color="bg-navy" />
         <StatCard label="Publicados" value={published.length} color="bg-green-600" />
         <StatCard label="Nao Publicados" value={unpublished.length} color="bg-navy-light" />
@@ -60,7 +60,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Status Breakdown */}
-      <div className="mb-8 rounded-2xl bg-white p-6 shadow-md">
+      <div className="mb-6 rounded-2xl bg-white p-4 shadow-md sm:mb-8 sm:p-6">
         <h2 className="mb-4 text-lg font-bold text-navy">Status dos Cursos</h2>
         <div className="space-y-3">
           <StatusRow label="Em Andamento" count={statuses["em-andamento"]} color="bg-green-600" />
@@ -70,7 +70,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Enrollments per Course */}
-      <div className="rounded-2xl bg-white p-6 shadow-md">
+      <div className="rounded-2xl bg-white p-4 shadow-md sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-navy">Alunos por Curso</h2>
           <Link
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
 
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-md">
+    <div className="rounded-2xl bg-white p-4 shadow-md sm:p-6">
       <p className="mb-1 text-sm text-navy-light">{label}</p>
       <div className="flex items-center gap-3">
         <div className={`h-10 w-10 rounded-lg ${color} flex items-center justify-center`}>
