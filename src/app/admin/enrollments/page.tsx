@@ -55,20 +55,18 @@ export default function EnrollmentsPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-navy">
-            Matrículas por Curso
-          </h1>
-          <p className="mt-1 text-sm text-navy-light">
-            {totalEnrollments} matrícula{totalEnrollments !== 1 ? "s" : ""} em{" "}
-            {data.length} curso{data.length !== 1 ? "s" : ""}
-          </p>
-        </div>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl font-bold text-navy sm:text-2xl">
+          Matrículas por Curso
+        </h1>
+        <p className="mt-1 text-sm text-navy-light">
+          {totalEnrollments} matrícula{totalEnrollments !== 1 ? "s" : ""} em{" "}
+          {data.length} curso{data.length !== 1 ? "s" : ""}
+        </p>
       </div>
 
       {data.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-navy-light/20 bg-white p-12 text-center">
+        <div className="rounded-2xl border-2 border-dashed border-navy-light/20 bg-white p-8 text-center sm:p-12">
           <p className="text-navy-light">Nenhuma matrícula encontrada</p>
         </div>
       ) : (
@@ -79,13 +77,13 @@ export default function EnrollmentsPage() {
               className="overflow-hidden rounded-2xl bg-white shadow-md"
             >
               {/* Course Header */}
-              <button
-                onClick={() => toggleExpanded(course.courseId)}
-                className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-cream/50"
-              >
-                <div className="flex items-center gap-3">
+              <div className="flex w-full flex-col gap-2 px-4 py-4 sm:flex-row sm:gap-0 sm:items-center sm:justify-between sm:px-6">
+                <button
+                  onClick={() => toggleExpanded(course.courseId)}
+                  className="flex items-center gap-3 text-left transition-colors hover:opacity-75"
+                >
                   <svg
-                    className={`h-5 w-5 text-navy-light transition-transform ${
+                    className={`h-5 w-5 shrink-0 text-navy-light transition-transform ${
                       expanded.has(course.courseId) ? "rotate-90" : ""
                     }`}
                     fill="none"
@@ -99,107 +97,176 @@ export default function EnrollmentsPage() {
                       d="M9 5l7 7-7 7"
                     />
                   </svg>
-                  <h2 className="text-lg font-bold text-navy">
+                  <h2 className="text-base font-bold text-navy sm:text-lg">
                     {course.courseTitle}
                   </h2>
                   <span className="rounded-full bg-primary/10 px-3 py-0.5 text-xs font-semibold text-primary">
                     {course.enrollments.length} aluno
                     {course.enrollments.length !== 1 ? "s" : ""}
                   </span>
-                </div>
+                </button>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={() =>
                     exportEnrollmentsCSV(
                       course.courseTitle,
                       course.enrollments
-                    );
-                  }}
-                  className="rounded-lg border border-navy-light/20 px-4 py-1.5 text-xs font-semibold text-navy-light transition-colors hover:border-navy hover:text-navy"
+                    )
+                  }
+                  className="self-start rounded-lg border border-navy-light/20 px-4 py-1.5 text-xs font-semibold text-navy-light transition-colors hover:border-navy hover:text-navy sm:self-auto"
                 >
                   Exportar CSV
                 </button>
-              </button>
+              </div>
 
-              {/* Enrollments Table */}
+              {/* Enrollments */}
               {expanded.has(course.courseId) && (
-                <div className="border-t border-navy-light/10">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-navy-light/10 bg-cream">
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
-                          Nome
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
-                          E-mail
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
-                          Telefone
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
-                          Data
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
-                          Pagamento
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-light">
-                          Valor
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
-                          Status
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {course.enrollments.map((user, i) => (
-                        <tr
-                          key={`${user.uid}-${i}`}
-                          className="border-b border-navy-light/5 transition-colors hover:bg-cream/50"
-                        >
-                          <td className="px-6 py-3 text-sm font-medium text-navy">
-                            {user.fullName || "—"}
-                          </td>
-                          <td className="px-6 py-3 text-sm text-navy-light">
-                            {user.email || "—"}
-                          </td>
-                          <td className="px-6 py-3 text-sm text-navy-light">
-                            {user.phone || "—"}
-                          </td>
-                          <td className="px-6 py-3 text-sm text-navy-light">
-                            {user.purchaseDate
-                              ? new Date(user.purchaseDate).toLocaleDateString(
-                                  "pt-BR"
-                                )
-                              : "—"}
-                          </td>
-                          <td className="px-6 py-3 text-sm text-navy-light">
-                            {user.paymentMethod === "pix"
-                              ? "PIX"
-                              : user.paymentMethod === "cartao"
-                                ? "Cartão"
-                                : user.paymentMethod || "—"}
-                          </td>
-                          <td className="px-6 py-3 text-right text-sm text-navy-light">
-                            {user.amount
-                              ? `R$ ${user.amount.toFixed(2).replace(".", ",")}`
-                              : "—"}
-                          </td>
-                          <td className="px-6 py-3">
-                            <span
-                              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                user.status === "paid"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-yellow-100 text-yellow-700"
-                              }`}
-                            >
-                              {user.status === "paid" ? "Pago" : user.status}
-                            </span>
-                          </td>
+                <>
+                  {/* Desktop table */}
+                  <div className="hidden border-t border-navy-light/10 md:block">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-navy-light/10 bg-cream">
+                          <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
+                            Nome
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
+                            E-mail
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
+                            Telefone
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
+                            Data
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
+                            Pagamento
+                          </th>
+                          <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-navy-light">
+                            Valor
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-navy-light">
+                            Status
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {course.enrollments.map((user, i) => (
+                          <tr
+                            key={`${user.uid}-${i}`}
+                            className="border-b border-navy-light/5 transition-colors hover:bg-cream/50"
+                          >
+                            <td className="px-6 py-3 text-sm font-medium text-navy">
+                              {user.fullName || "—"}
+                            </td>
+                            <td className="px-6 py-3 text-sm text-navy-light">
+                              {user.email || "—"}
+                            </td>
+                            <td className="px-6 py-3 text-sm text-navy-light">
+                              {user.phone || "—"}
+                            </td>
+                            <td className="px-6 py-3 text-sm text-navy-light">
+                              {user.purchaseDate
+                                ? new Date(user.purchaseDate).toLocaleDateString(
+                                    "pt-BR"
+                                  )
+                                : "—"}
+                            </td>
+                            <td className="px-6 py-3 text-sm text-navy-light">
+                              {user.paymentMethod === "pix"
+                                ? "PIX"
+                                : user.paymentMethod === "cartao"
+                                  ? "Cartão"
+                                  : user.paymentMethod || "—"}
+                            </td>
+                            <td className="px-6 py-3 text-right text-sm text-navy-light">
+                              {user.amount
+                                ? `R$ ${user.amount.toFixed(2).replace(".", ",")}`
+                                : "—"}
+                            </td>
+                            <td className="px-6 py-3">
+                              <span
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                  user.status === "paid"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                                }`}
+                              >
+                                {user.status === "paid" ? "Pago" : user.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile cards */}
+                  <div className="space-y-3 border-t border-navy-light/10 p-4 md:hidden">
+                    {course.enrollments.map((user, i) => (
+                      <div
+                        key={`${user.uid}-${i}`}
+                        className="rounded-xl bg-cream p-4"
+                      >
+                        <div className="mb-2 flex items-start justify-between">
+                          <p className="font-medium text-navy">
+                            {user.fullName || "—"}
+                          </p>
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                              user.status === "paid"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {user.status === "paid" ? "Pago" : user.status}
+                          </span>
+                        </div>
+                        <div className="space-y-1 text-sm text-navy-light">
+                          <div className="flex justify-between">
+                            <span>E-mail</span>
+                            <span className="text-navy">
+                              {user.email || "—"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Telefone</span>
+                            <span className="text-navy">
+                              {user.phone || "—"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Data</span>
+                            <span className="text-navy">
+                              {user.purchaseDate
+                                ? new Date(
+                                    user.purchaseDate
+                                  ).toLocaleDateString("pt-BR")
+                                : "—"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Pagamento</span>
+                            <span className="text-navy">
+                              {user.paymentMethod === "pix"
+                                ? "PIX"
+                                : user.paymentMethod === "cartao"
+                                  ? "Cartão"
+                                  : user.paymentMethod || "—"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Valor</span>
+                            <span className="font-medium text-navy">
+                              {user.amount
+                                ? `R$ ${user.amount.toFixed(2).replace(".", ",")}`
+                                : "—"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           ))}

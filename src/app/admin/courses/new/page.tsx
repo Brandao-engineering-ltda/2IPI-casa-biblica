@@ -18,14 +18,14 @@ export default function NovoCursoPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center gap-4">
+      <div className="mb-6 flex flex-col gap-1 sm:mb-8 sm:flex-row sm:items-center sm:gap-4">
         <Link
           href="/admin/courses"
-          className="text-sm text-navy-light hover:text-primary transition-colors"
+          className="self-start text-sm text-navy-light hover:text-primary transition-colors sm:self-auto"
         >
           ← Voltar
         </Link>
-        <h1 className="text-2xl font-bold text-navy">Novo Curso</h1>
+        <h1 className="text-xl font-bold text-navy sm:text-2xl">Novo Curso</h1>
       </div>
       <CourseForm onSubmit={handleSubmit} isNew />
     </div>
