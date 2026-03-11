@@ -1,36 +1,203 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Instituto Casa Biblica
+
+Portal de cursos biblicos da 2a Igreja Presbiteriana Independente de Maringa (2IPI).
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 16 (App Router, static export) |
+| Language | TypeScript 5 |
+| Styling | Tailwind CSS v4 |
+| Auth & DB | Firebase (Authentication + Firestore) |
+| Hosting | Firebase Hosting |
+| Testing | Jest 30 + Testing Library |
+| CI/CD | GitHub Actions |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 22+
+- npm
+- A Firebase project with Authentication and Firestore enabled
+
+### Setup
 
 ```bash
+# Install dependencies
+npm install
+
+# Copy environment variables and fill in your Firebase config
+cp .env.example .env.local
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Get these from Firebase Console > Project Settings > Your apps > Web app:
 
-## Learn More
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Available Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run dev            # Development server
+npm run build          # Static export to /out
+npm run lint           # ESLint
+npm test               # Run tests
+npm run test:watch     # Tests in watch mode
+npm run test:coverage  # Coverage report (80% threshold)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Architecture
 
-## Deploy on Vercel
+### Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+src/
+├── app/                          # Next.js App Router pages
+│   ├── page.tsx                  # Landing page (public)
+│   ├── layout.tsx                # Root layout (Header + Footer)
+│   ├── globals.css               # Tailwind v4 theme + global styles
+│   ├── loading.tsx               # Global loading skeleton
+│   │
+│   ├── login/                    # Login (email/password + Google OAuth)
+│   ├── register/                 # Registration form + success page
+│   ├── dashboard/                # User dashboard (enrolled courses, progress)
+│   │
+│   ├── course/[id]/              # Course pages (dynamic routing)
+│   │   ├── page.tsx              # Course overview (public)
+│   │   ├── CoursePageClient.tsx   # Client component for course details
+│   │   ├── content/              # Lesson viewer (requires purchase)
+│   │   └── enrollment/           # Enrollment + payment form
+│   │
+│   └── admin/                    # Admin panel (admin role required)
+│       ├── page.tsx              # Dashboard (stats, enrollments overview)
+│       ├── layout.tsx            # Sidebar navigation + auth guard
+│       ├── courses/              # CRUD courses, modules, lessons, history
+│       ├── enrollments/          # Student enrollments + CSV export
+│       └── settings/             # Admin email whitelist
+│
+├── components/                   # Shared React components
+│   ├── Header.tsx                # Sticky navbar with auth menu
+│   ├── Footer.tsx                # Footer with contact info
+│   ├── HeroSection.tsx           # Landing page hero
+│   ├── CoursesSection.tsx        # Course card grid
+│   ├── AboutSection.tsx          # About section
+│   ├── CTASection.tsx            # Call-to-action
+│   ├── VideoSection.tsx          # Responsive video embed
+│   ├── Skeleton.tsx              # Skeleton loaders
+│   └── ClientProviders.tsx       # React context wrapper
+│
+├── contexts/
+│   └── AuthContext.tsx           # Auth state (user, profile, isAdmin)
+│
+└── lib/                          # Business logic
+    ├── firebase.ts               # Firebase initialization
+    ├── courses.ts                # Course CRUD, modules, lessons, history
+    ├── admin.ts                  # Admin operations, enrollment reports
+    ├── storage.ts                # User profiles, purchases, progress
+    ├── csv-export.ts             # CSV export for enrollments
+    └── seed-courses.ts           # Seed default course data
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Authentication Flow
+
+```
+Login/Register
+  └─> Firebase Auth (Email/Password or Google)
+        └─> AuthContext: onAuthStateChanged()
+              ├─> Fetch user profile from Firestore (users/{uid})
+              ├─> Check email against admin whitelist (config/admin)
+              └─> Redirect: admin -> /admin, user -> /dashboard
+```
+
+**Protected routes:**
+
+| Route | Requirement |
+|-------|-------------|
+| `/dashboard` | Authenticated |
+| `/course/[id]/enrollment` | Authenticated |
+| `/course/[id]/content` | Purchased course |
+| `/admin/**` | Admin role |
+
+### Firestore Data Model
+
+```
+users/{uid}
+├── fullName, email, phone, birthDate, role, ...
+├── purchases/{purchaseId}         # Course enrollments
+│   └── courseId, paymentMethod, amount, status, purchaseDate
+└── progress/{courseId}            # Lesson completion
+    └── completedLessons[], lastAccessed
+
+courses/{courseId}
+├── title, description, instructor, level, status, published, ...
+├── pricePix, priceCard, installments, order
+├── objectives[], syllabus[], requirements[]
+├── modules/{moduleId}             # Course structure
+│   ├── title, order
+│   └── lessons/{lessonId}
+│       └── title, duration, type (video|pdf|text), url, order
+└── history/{historyId}            # Edit versioning (snapshots)
+    └── snapshot, editedBy, editedByEmail, changeDescription
+
+config/admin
+└── adminEmails[]                  # Admin email whitelist
+```
+
+### Styling
+
+Tailwind CSS v4 with custom theme defined in `src/app/globals.css` using `@theme inline`:
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--color-primary` | `#D96A3B` | Buttons, links, accents |
+| `--color-navy` | `#2B3044` | Header, footer, text |
+| `--color-cream` | `#F0E0D0` | Background |
+| `--font-sans` | Montserrat | All text |
+
+### State Management
+
+- **AuthContext** (React Context): global auth state (user, profile, isAdmin)
+- **Firebase Firestore**: server-side data (courses, enrollments, progress)
+- **localStorage**: offline cache for purchases and lesson progress, synced with Firestore on load
+
+### Build & Deployment
+
+The app builds as a static export (`output: "export"` in `next.config.ts`) and deploys to Firebase Hosting.
+
+**CI/CD pipelines** (`.github/workflows/`):
+
+| Workflow | Trigger | Target |
+|----------|---------|--------|
+| `deploy-production.yml` | Push to `main` | Production |
+| `deploy-staging.yml` | Push to `staging` | Staging |
+| `pr-preview.yml` | Pull request | Staging (preview URL commented on PR) |
+
+All pipelines run: `npm ci` > `lint` > `test --coverage` > `build` > deploy.
+
+## Testing
+
+Tests live in `__tests__/` directories alongside the code they test. Coverage threshold is 80% for statements, branches, functions, and lines.
+
+```bash
+npm test               # Run all tests
+npm run test:coverage  # Run with coverage report
+```
+
+## License
+
+Private project for 2a Igreja Presbiteriana Independente de Maringa.

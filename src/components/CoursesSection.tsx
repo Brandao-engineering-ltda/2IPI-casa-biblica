@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { getPublishedCourses, type CourseData } from "@/lib/courses";
+import { CoursesStackedCarousel } from "./CoursesStackedCarousel";
 
 function statusBadge(status: CourseData["status"]) {
   switch (status) {
@@ -382,6 +383,7 @@ export function CoursesSection() {
   const [selectedCourse, setSelectedCourse] = useState<CourseData | null>(null);
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<"grid" | "stack">("stack");
 
   useEffect(() => {
     async function fetchCourses() {
@@ -446,20 +448,69 @@ export function CoursesSection() {
           </p>
         </div>
 
-        <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <FeaturedCourse
-            course={currentCourse}
-            onClick={() => setSelectedCourse(currentCourse)}
-          />
-
-          {upcomingCourses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              onClick={() => setSelectedCourse(course)}
-            />
-          ))}
+        {/* View toggle */}
+        <div className="mt-8 flex justify-center">
+          <div className="inline-flex rounded-full bg-navy/10 p-1">
+            <button
+              onClick={() => setView("grid")}
+              className={`rounded-full px-5 py-2 text-sm font-semibold transition-all ${
+                view === "grid"
+                  ? "bg-primary text-white shadow-md"
+                  : "text-navy-light hover:text-navy"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Grade
+              </span>
+            </button>
+            <button
+              onClick={() => setView("stack")}
+              className={`rounded-full px-5 py-2 text-sm font-semibold transition-all ${
+                view === "stack"
+                  ? "bg-primary text-white shadow-md"
+                  : "text-navy-light hover:text-navy"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                Carrossel
+              </span>
+            </button>
+          </div>
         </div>
+
+        {/* Grid view (original) */}
+        {view === "grid" && (
+          <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <FeaturedCourse
+              course={currentCourse}
+              onClick={() => setSelectedCourse(currentCourse)}
+            />
+
+            {upcomingCourses.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                onClick={() => setSelectedCourse(course)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Stacked card carousel view */}
+        {view === "stack" && (
+          <div className="mt-10">
+            <CoursesStackedCarousel
+              courses={courses}
+              onCourseClick={(course) => setSelectedCourse(course)}
+            />
+          </div>
+        )}
       </div>
 
       {selectedCourse && (

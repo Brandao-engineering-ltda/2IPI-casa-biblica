@@ -1,20 +1,8 @@
-// Union of all course IDs used across curso pages (main, inscricao, conteudo)
-const ALL_COURSE_IDS = [
-  "fundamentos-da-fe",
-  "hermeneutica",
-  "antigo-testamento",
-  "panorama-biblico",
-  "novo-testamento",
-  "lideranca-crista",
-  "teologia-sistematica",
-  "hermeneutica-biblica",
-];
+import { getCourseStaticParams } from "@/lib/static-params";
 
-export function generateStaticParams() {
-  return ALL_COURSE_IDS.map((id) => ({ id }));
-}
+export const generateStaticParams = getCourseStaticParams;
 
-export default function CursoLayout({
+export default function CourseLayout({
   children,
 }: {
   children: React.ReactNode;

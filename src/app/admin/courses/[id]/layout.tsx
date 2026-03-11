@@ -1,20 +1,8 @@
-// Reuse course IDs from the public curso layout for static export
-const ALL_COURSE_IDS = [
-  "fundamentos-da-fe",
-  "hermeneutica",
-  "antigo-testamento",
-  "panorama-biblico",
-  "novo-testamento",
-  "lideranca-crista",
-  "teologia-sistematica",
-  "hermeneutica-biblica",
-];
+import { getCourseStaticParams } from "@/lib/static-params";
 
-export function generateStaticParams() {
-  return ALL_COURSE_IDS.map((id) => ({ id }));
-}
+export const generateStaticParams = getCourseStaticParams;
 
-export default function AdminCursoLayout({
+export default function AdminCourseLayout({
   children,
 }: {
   children: React.ReactNode;
