@@ -181,15 +181,16 @@ export function CoursesStackedCarousel({
                 className="relative"
                 style={{ aspectRatio: "16 / 10", width: "100%" }}
               >
-                {/* Radial shadow beneath stack */}
+                {/* Floating shadow beneath stack */}
                 <div
                   className="pointer-events-none absolute left-1/2 -translate-x-1/2"
                   style={{
-                    bottom: "-18px",
-                    width: "80%",
-                    height: "36px",
+                    bottom: "-28px",
+                    width: "90%",
+                    height: "56px",
                     background:
-                      "radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, transparent 70%)",
+                      "radial-gradient(ellipse 50% 45% at center, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.10) 40%, transparent 80%)",
+                    filter: "blur(6px)",
                   }}
                 />
 
