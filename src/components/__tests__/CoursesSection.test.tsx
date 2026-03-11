@@ -100,6 +100,14 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
+// Helper: switch to grid view (default is now carousel/stack)
+async function switchToGridView() {
+  await waitFor(() => {
+    expect(screen.getByText('Grade')).toBeInTheDocument();
+  });
+  fireEvent.click(screen.getByText('Grade'));
+}
+
 describe('CoursesSection Component', () => {
   describe('Section Rendering', () => {
     it('renders the section heading "Nossos Cursos"', async () => {
@@ -138,6 +146,7 @@ describe('CoursesSection Component', () => {
   describe('Course Cards', () => {
     it('renders course titles', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -147,6 +156,7 @@ describe('CoursesSection Component', () => {
 
     it('renders course descriptions', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(
           screen.getByText(/Uma visão geral de toda a Bíblia, do Gênesis ao Apocalipse/)
@@ -159,6 +169,7 @@ describe('CoursesSection Component', () => {
 
     it('renders the featured course (first course) as a distinct card', async () => {
       const { container } = render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         const featuredCard = container.querySelector('article.col-span-full');
         expect(featuredCard).toBeInTheDocument();
@@ -167,6 +178,7 @@ describe('CoursesSection Component', () => {
 
     it('renders "Ver Detalhes" buttons on course cards', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         const verDetalhesButtons = screen.getAllByText('Ver Detalhes');
         expect(verDetalhesButtons.length).toBeGreaterThanOrEqual(1);
@@ -177,6 +189,7 @@ describe('CoursesSection Component', () => {
   describe('Course Details (Levels, Duration, Dates)', () => {
     it('renders status badges', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Em Andamento')).toBeInTheDocument();
       });
@@ -188,6 +201,7 @@ describe('CoursesSection Component', () => {
 
     it('renders level badges', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         const inicianteBadges = screen.getAllByText('Iniciante');
         expect(inicianteBadges.length).toBeGreaterThanOrEqual(1);
@@ -198,6 +212,7 @@ describe('CoursesSection Component', () => {
 
     it('renders course durations', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         const duracoes12 = screen.getAllByText('12 semanas');
         expect(duracoes12.length).toBeGreaterThanOrEqual(1);
@@ -208,6 +223,7 @@ describe('CoursesSection Component', () => {
 
     it('renders course date ranges on cards', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText(/10 Fev 2026 — 4 Mai 2026/)).toBeInTheDocument();
       });
@@ -217,6 +233,7 @@ describe('CoursesSection Component', () => {
   describe('Course Images', () => {
     it('renders course images with correct alt text', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         const panoramaImages = screen.getAllByAltText('Panorama Bíblico');
         expect(panoramaImages.length).toBeGreaterThanOrEqual(1);
@@ -229,6 +246,7 @@ describe('CoursesSection Component', () => {
   describe('Course Dialog', () => {
     it('opens the dialog when a course card is clicked', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -241,6 +259,7 @@ describe('CoursesSection Component', () => {
 
     it('shows "Instituto Casa Bíblica" text in dialog', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -253,6 +272,7 @@ describe('CoursesSection Component', () => {
 
     it('shows course title in dialog', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getAllByText('Fundamentos da Fé').length).toBeGreaterThanOrEqual(1);
       });
@@ -267,6 +287,7 @@ describe('CoursesSection Component', () => {
 
     it('shows course description in dialog', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -282,6 +303,7 @@ describe('CoursesSection Component', () => {
 
     it('shows status and level badges in dialog', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -298,6 +320,7 @@ describe('CoursesSection Component', () => {
 
     it('shows start and end dates in dialog', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -311,6 +334,7 @@ describe('CoursesSection Component', () => {
 
     it('shows duration in dialog', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -324,6 +348,7 @@ describe('CoursesSection Component', () => {
 
     it('"Inscreva-se Agora" links to /login', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -337,6 +362,7 @@ describe('CoursesSection Component', () => {
 
     it('closes the dialog when the close button is clicked', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -354,6 +380,7 @@ describe('CoursesSection Component', () => {
 
     it('closes the dialog when the backdrop is clicked', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -371,6 +398,7 @@ describe('CoursesSection Component', () => {
 
     it('closes the dialog when Escape key is pressed', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
@@ -387,6 +415,7 @@ describe('CoursesSection Component', () => {
 
     it('renders the logo image in dialog', async () => {
       render(<CoursesSection />);
+      await switchToGridView();
       await waitFor(() => {
         expect(screen.getByText('Panorama Bíblico')).toBeInTheDocument();
       });
