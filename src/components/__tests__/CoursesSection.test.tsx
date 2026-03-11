@@ -436,4 +436,54 @@ describe('CoursesSection Component', () => {
       });
     });
   });
+
+  describe('Error handling', () => {
+    it('handles fetch error gracefully', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      (getPublishedCourses as jest.Mock).mockRejectedValue(new Error('Network error'));
+      render(<CoursesSection />);
+      await waitFor(() => {
+        expect(screen.getByText(/Em breve novos cursos/)).toBeInTheDocument();
+      });
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to fetch courses:', expect.any(Error));
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('View Toggle', () => {
+    it('renders the carousel view by default', async () => {
+      render(<CoursesSection />);
+      await waitFor(() => {
+        expect(screen.getByText(/Role ou clique para navegar/)).toBeInTheDocument();
+      });
+    });
+
+    it('switches between grid and carousel views', async () => {
+      render(<CoursesSection />);
+      await switchToGridView();
+      await waitFor(() => {
+        expect(screen.queryByText(/Role ou clique para navegar/)).not.toBeInTheDocument();
+      });
+
+      // Switch back to carousel
+      fireEvent.click(screen.getByText('Carrossel'));
+      await waitFor(() => {
+        expect(screen.getByText(/Role ou clique para navegar/)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Course with unknown level', () => {
+    it('renders default badge for unknown level', async () => {
+      const coursesWithUnknownLevel = [
+        { ...mockCourses[0], level: 'Especialista' },
+      ];
+      (getPublishedCourses as jest.Mock).mockResolvedValue(coursesWithUnknownLevel);
+      render(<CoursesSection />);
+      await switchToGridView();
+      await waitFor(() => {
+        expect(screen.getByText('Especialista')).toBeInTheDocument();
+      });
+    });
+  });
 });
