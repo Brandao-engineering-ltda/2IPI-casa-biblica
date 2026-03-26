@@ -1,4 +1,5 @@
 import { HeroSection } from "@/components/HeroSection";
+import { GroupsSection } from "@/components/GroupsSection";
 import { VideoSection } from "@/components/VideoSection";
 import { CoursesSection } from "@/components/CoursesSection";
 import { AboutSection } from "@/components/AboutSection";
@@ -9,6 +10,9 @@ export default function Home() {
   return (
     <>
       <HeroSection />
+      <FadeInSection>
+        <GroupsSection />
+      </FadeInSection>
       <FadeInSection>
         <VideoSection />
       </FadeInSection>
