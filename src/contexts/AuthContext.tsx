@@ -37,13 +37,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        await fetchProfile(firebaseUser);
+        try {
+          await fetchProfile(firebaseUser);
+        } catch (err) {
+          console.warn("Could not fetch user profile:", err);
+        }
         if (firebaseUser.email) {
-          const admin = await checkAndSetAdminRole(
-            firebaseUser.uid,
-            firebaseUser.email
-          );
-          setIsAdmin(admin);
+          try {
+            const admin = await checkAndSetAdminRole(
+              firebaseUser.uid,
+              firebaseUser.email
+            );
+            setIsAdmin(admin);
+          } catch (err) {
+            console.warn("Could not check admin role:", err);
+            setIsAdmin(false);
+          }
         } else {
           setIsAdmin(false);
         }
