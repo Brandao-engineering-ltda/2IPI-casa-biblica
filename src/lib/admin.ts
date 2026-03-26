@@ -9,27 +9,37 @@ import { db } from "./firebase";
 import { getAllCourses } from "./courses";
 
 /**
- * Fetches the admin email whitelist from Firestore config/admin doc.
- * Falls back to NEXT_PUBLIC_ADMIN_EMAILS env var if Firestore doc doesn't exist.
+ * Fetches the admin email whitelist.
+ * Checks env var first (always available, no Firestore dependency),
+ * then merges with Firestore config/admin doc if it exists.
  */
 export async function getAdminEmails(): Promise<string[]> {
+  const emails = new Set<string>();
+
+  // 1. Check env var first (always available, no Firestore permissions needed)
+  const envEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS;
+  if (envEmails) {
+    for (const e of envEmails.split(",")) {
+      const trimmed = e.trim().toLowerCase();
+      if (trimmed) emails.add(trimmed);
+    }
+  }
+
+  // 2. Also check Firestore config/admin doc (may have additional emails)
   try {
     const snap = await getDoc(doc(db, "config", "admin"));
     if (snap.exists()) {
       const data = snap.data();
-      return (data.adminEmails as string[]) || [];
+      const firestoreEmails = (data.adminEmails as string[]) || [];
+      for (const e of firestoreEmails) {
+        emails.add(e.trim().toLowerCase());
+      }
     }
   } catch {
-    // Firestore unavailable, fall through to env fallback
+    // Firestore unavailable or permissions not yet deployed — env var is enough
   }
 
-  // Fallback to env var (comma-separated emails)
-  const envEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS;
-  if (envEmails) {
-    return envEmails.split(",").map((e) => e.trim().toLowerCase());
-  }
-
-  return [];
+  return Array.from(emails);
 }
 
 /**
@@ -43,6 +53,7 @@ export async function isAdminEmail(email: string): Promise<boolean> {
 /**
  * Checks if user's email is in admin whitelist and sets role on user doc.
  * Returns true if user is admin.
+ * Gracefully handles Firestore write failures (e.g. rules not yet deployed).
  */
 export async function checkAndSetAdminRole(
   uid: string,
@@ -51,11 +62,16 @@ export async function checkAndSetAdminRole(
   const admin = await isAdminEmail(email);
   const role = admin ? "admin" : "user";
 
-  await setDoc(
-    doc(db, "users", uid),
-    { role },
-    { merge: true }
-  );
+  try {
+    await setDoc(
+      doc(db, "users", uid),
+      { role },
+      { merge: true }
+    );
+  } catch (err) {
+    console.warn("Could not write user role to Firestore:", err);
+    // Still return the admin check result based on env/config
+  }
 
   return admin;
 }
