@@ -433,20 +433,27 @@ const filterOptions: { label: string; value: FilterCategory; icon: string }[] =
 
 function useStaggeredReveal(items: unknown[], isActive: boolean) {
   const [visibleCount, setVisibleCount] = useState(0);
+  const [itemsKey, setItemsKey] = useState(items.length);
+  const [wasActive, setWasActive] = useState(isActive);
+
+  // Derive resets from prop changes at render time (no refs, no effects)
+  if (items.length !== itemsKey) {
+    setItemsKey(items.length);
+    setVisibleCount(0);
+  }
+  if (wasActive && !isActive) {
+    setVisibleCount(0);
+  }
+  if (wasActive !== isActive) {
+    setWasActive(isActive);
+  }
 
   useEffect(() => {
-    if (!isActive) {
-      setVisibleCount(0);
-      return;
-    }
+    if (!isActive) return;
     if (visibleCount >= items.length) return;
     const timer = setTimeout(() => setVisibleCount((c) => c + 1), 80);
     return () => clearTimeout(timer);
   }, [isActive, visibleCount, items.length]);
-
-  useEffect(() => {
-    setVisibleCount(0);
-  }, [items]);
 
   return visibleCount;
 }
