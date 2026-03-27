@@ -9,6 +9,25 @@ jest.mock('next/image', () => ({
   default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => <img {...props} />,
 }));
 
+// Mock framer-motion to avoid AnimatePresence exit delays in tests
+jest.mock('framer-motion', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+  const motionProps = ['initial', 'animate', 'exit', 'variants', 'whileHover', 'whileTap', 'whileInView', 'viewport', 'custom', 'transition', 'layout', 'layoutId'];
+  function createMotionComponent(tag: string) {
+    return React.forwardRef(function MotionComponent(props: Record<string, unknown>, ref: React.Ref<unknown>) {
+      const filtered = Object.fromEntries(Object.entries(props).filter(([k]) => !motionProps.includes(k)));
+      return React.createElement(tag, { ...filtered, ref });
+    });
+  }
+  return {
+    motion: new Proxy({}, {
+      get: (_target: Record<string, unknown>, prop: string) => createMotionComponent(prop),
+    }),
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
+  };
+});
+
 // Mock courses lib
 jest.mock('@/lib/courses', () => ({
   getPublishedCourses: jest.fn(),

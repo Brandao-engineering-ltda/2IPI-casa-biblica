@@ -46,3 +46,20 @@ html {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* ── Fluid UI gradient shift animation ── */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ── Smooth scrollbar styling ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-cream); }
+::-webkit-scrollbar-thumb {
+  background: rgba(43, 48, 68, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(43, 48, 68, 0.3);
+}

@@ -7,6 +7,10 @@ jest.mock('@/components/HeroSection', () => ({
   HeroSection: () => <div data-testid="hero-section">Hero</div>,
 }))
 
+jest.mock('@/components/GroupsSection', () => ({
+  GroupsSection: () => <div data-testid="groups-section">Groups</div>,
+}))
+
 jest.mock('@/components/VideoSection', () => ({
   VideoSection: () => <div data-testid="video-section">Video</div>,
 }))
@@ -23,8 +27,8 @@ jest.mock('@/components/CTASection', () => ({
   CTASection: () => <div data-testid="cta-section">CTA</div>,
 }))
 
-jest.mock('@/components/FadeInSection', () => ({
-  FadeInSection: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+jest.mock('@/components/MotionFadeIn', () => ({
+  MotionFadeIn: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
 describe('Home Page', () => {
@@ -32,6 +36,7 @@ describe('Home Page', () => {
     render(<Home />)
 
     expect(screen.getByTestId('hero-section')).toBeInTheDocument()
+    expect(screen.getByTestId('groups-section')).toBeInTheDocument()
     expect(screen.getByTestId('video-section')).toBeInTheDocument()
     expect(screen.getByTestId('courses-section')).toBeInTheDocument()
     expect(screen.getByTestId('about-section')).toBeInTheDocument()
@@ -46,6 +51,7 @@ describe('Home Page', () => {
 
     expect(sectionIds).toEqual([
       'hero-section',
+      'groups-section',
       'video-section',
       'courses-section',
       'about-section',
