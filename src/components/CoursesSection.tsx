@@ -2,9 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
 import { getPublishedCourses, type CourseData } from "@/lib/courses";
 import { CoursesStackedCarousel } from "./CoursesStackedCarousel";
+
+const spring = { type: "spring" as const, stiffness: 120, damping: 24, mass: 0.4 };
 
 function statusBadge(status: CourseData["status"]) {
   switch (status) {
@@ -83,15 +86,23 @@ function CourseDialog({
   }, [handleKeyDown]);
 
   return (
-    <div
+    <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-      <div
+      <motion.div
         className="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-navy-dark shadow-2xl"
         onClick={(e) => e.stopPropagation()}
+        initial={{ scale: 0.92, opacity: 0, y: 40 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.92, opacity: 0, y: 40 }}
+        transition={spring}
       >
         {/* Background image */}
         <div className="absolute inset-0">
@@ -215,8 +226,8 @@ function CourseDialog({
             </svg>
           </Link>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -309,9 +320,11 @@ function CourseCard({
   const badge = statusBadge(course.status);
 
   return (
-    <article
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-lg"
+    <motion.article
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white shadow-sm"
       onClick={onClick}
+      whileHover={{ y: -6, scale: 1.02, boxShadow: "0 20px 50px rgba(43,48,68,0.12)" }}
+      transition={spring}
     >
       {/* Image reveal on hover */}
       <div className="pointer-events-none absolute inset-0 z-10">
@@ -375,7 +388,7 @@ function CourseCard({
         </div>
 
       </div>
-    </article>
+    </motion.article>
   );
 }
 
@@ -513,12 +526,14 @@ export function CoursesSection() {
         )}
       </div>
 
-      {selectedCourse && (
-        <CourseDialog
-          course={selectedCourse}
-          onClose={() => setSelectedCourse(null)}
-        />
-      )}
+      <AnimatePresence>
+        {selectedCourse && (
+          <CourseDialog
+            course={selectedCourse}
+            onClose={() => setSelectedCourse(null)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

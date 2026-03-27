@@ -1,26 +1,30 @@
 import { HeroSection } from "@/components/HeroSection";
+import { GroupsSection } from "@/components/GroupsSection";
 import { VideoSection } from "@/components/VideoSection";
 import { CoursesSection } from "@/components/CoursesSection";
 import { AboutSection } from "@/components/AboutSection";
 import { CTASection } from "@/components/CTASection";
-import { FadeInSection } from "@/components/FadeInSection";
+import { MotionFadeIn } from "@/components/MotionFadeIn";
 
 export default function Home() {
   return (
     <>
       <HeroSection />
-      <FadeInSection>
+      <MotionFadeIn>
+        <GroupsSection />
+      </MotionFadeIn>
+      <MotionFadeIn>
         <VideoSection />
-      </FadeInSection>
-      <FadeInSection>
+      </MotionFadeIn>
+      <MotionFadeIn>
         <CoursesSection />
-      </FadeInSection>
-      <FadeInSection>
+      </MotionFadeIn>
+      <MotionFadeIn>
         <AboutSection />
-      </FadeInSection>
-      <FadeInSection>
+      </MotionFadeIn>
+      <MotionFadeIn>
         <CTASection />
-      </FadeInSection>
+      </MotionFadeIn>
     </>
   );
 }

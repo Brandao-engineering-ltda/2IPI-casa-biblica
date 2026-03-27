@@ -65,6 +65,12 @@ export function Header() {
           {showNavLinks && (
             <>
               <Link
+                href="/#grupos"
+                className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+              >
+                Grupos
+              </Link>
+              <Link
                 href="/#courses"
                 className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
               >
@@ -143,6 +149,13 @@ export function Header() {
           <div className="flex flex-col gap-4">
             {showNavLinks && (
               <>
+                <Link
+                  href="/#grupos"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-sm font-medium text-cream-dark transition-colors hover:text-primary-light"
+                >
+                  Grupos
+                </Link>
                 <Link
                   href="/#courses"
                   onClick={() => setMenuOpen(false)}
